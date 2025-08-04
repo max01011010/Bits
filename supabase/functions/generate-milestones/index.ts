@@ -20,8 +20,8 @@ serve(async (req) => {
       });
     }
 
-    // Updated to CohereLabs/aya-expanse-8b
-    const HF_API_URL = "https://api-inference.huggingface.co/models/CohereLabs/aya-expanse-8b";
+    // Updated to the chat completions endpoint
+    const HF_API_URL = "https://router.huggingface.co/v1/chat/completions";
     const HF_API_TOKEN = Deno.env.get("HF_API_TOKEN");
 
     if (!HF_API_TOKEN) {
@@ -31,8 +31,8 @@ serve(async (req) => {
       });
     }
 
-    // Refined prompt for instruction-tuned models like Aya-Expanse
-    const prompt = `Generate 3-4 incremental milestones for the goal: "${endGoal}". Each milestone should have a "goal" (string, e.g., "Walk 1000 steps") and "targetDays" (number, e.g., 3). Return only a JSON array of objects. Do not include any other text or formatting. Example: [{"goal": "Start with 1000 steps", "targetDays": 3}, {"goal": "Increase to 3000 steps", "targetDays": 5}]`;
+    // Prompt formatted for the chat completions API
+    const promptContent = `Generate 3-4 incremental milestones for the goal: "${endGoal}". Each milestone should have a "goal" (string, e.g., "Walk 1000 steps") and "targetDays" (number, e.g., 3). Return only a JSON array of objects. Do not include any other text or formatting. Example: [{"goal": "Start with 1000 steps", "targetDays": 3}, {"goal": "Increase to 3000 steps", "targetDays": 5}]`;
 
     const response = await fetch(HF_API_URL, {
       headers: {
@@ -40,7 +40,16 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       method: 'POST',
-      body: JSON.stringify({ inputs: prompt }),
+      body: JSON.stringify({
+        messages: [
+          {
+            role: "user",
+            content: promptContent,
+          }
+        ],
+        model: "CohereLabs/aya-expanse-8b:cohere", // Model specified in the body
+        stream: false // As per your curl script
+      }),
     });
 
     if (!response.ok) {
@@ -53,11 +62,20 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const generatedText = data[0]?.generated_text;
+    // Extract generated text from the chat completions response structure
+    const generatedText = data.choices?.[0]?.message?.content;
+
+    if (!generatedText) {
+      console.error("No generated text found in AI response:", data);
+      return new Response(JSON.stringify({ error: 'AI did not return expected text content.', rawResponse: data }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      });
+    }
 
     let milestones;
     try {
-      // Extract only the JSON part from the generated text, as the model might include the prompt in the output
+      // Extract only the JSON part from the generated text
       const jsonMatch = generatedText.match(/\[\s*\{[\s\S]*\}\s*\]/);
       if (!jsonMatch) {
         throw new Error("No JSON array found in AI response.");
