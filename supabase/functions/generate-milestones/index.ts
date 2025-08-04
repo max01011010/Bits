@@ -20,8 +20,8 @@ serve(async (req) => {
       });
     }
 
-    // Updated to a more robust instruction-tuned model
-    const HF_API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2";
+    // Updated to google/gemma-2b-it, a generally accessible instruction-tuned model
+    const HF_API_URL = "https://api-inference.huggingface.co/models/google/gemma-2b-it";
     const HF_API_TOKEN = Deno.env.get("HF_API_TOKEN");
 
     if (!HF_API_TOKEN) {
@@ -31,8 +31,8 @@ serve(async (req) => {
       });
     }
 
-    // Refined prompt for instruction-tuned models
-    const prompt = `[INST] Generate 3-4 incremental milestones for the goal: "${endGoal}". Each milestone should have a "goal" (string, e.g., "Walk 1000 steps") and "targetDays" (number, e.g., 3). Return only a JSON array of objects. Do not include any other text or formatting. Example: [{"goal": "Start with 1000 steps", "targetDays": 3}, {"goal": "Increase to 3000 steps", "targetDays": 5}] [/INST]`;
+    // Refined prompt for Gemma-style instruction-tuned models
+    const prompt = `<bos><start_of_turn>user\nGenerate 3-4 incremental milestones for the goal: "${endGoal}". Each milestone should have a "goal" (string, e.g., "Walk 1000 steps") and "targetDays" (number, e.g., 3). Return only a JSON array of objects. Do not include any other text or formatting. Example: [{"goal": "Start with 1000 steps", "targetDays": 3}, {"goal": "Increase to 3000 steps", "targetDays": 5}]<end_of_turn>\n<start_of_turn>model\n`;
 
     const response = await fetch(HF_API_URL, {
       headers: {
@@ -57,7 +57,13 @@ serve(async (req) => {
 
     let milestones;
     try {
-      milestones = JSON.parse(generatedText);
+      // Extract only the JSON part from the generated text, as Gemma might include the prompt in the output
+      const jsonMatch = generatedText.match(/\[\s*\{[\s\S]*\}\s*\]/);
+      if (!jsonMatch) {
+        throw new Error("No JSON array found in AI response.");
+      }
+      milestones = JSON.parse(jsonMatch[0]);
+
       if (!Array.isArray(milestones) || !milestones.every(m => typeof m.goal === 'string' && typeof m.targetDays === 'number')) {
         throw new Error("Invalid AI response format: Expected array of objects with 'goal' (string) and 'targetDays' (number).");
       }
