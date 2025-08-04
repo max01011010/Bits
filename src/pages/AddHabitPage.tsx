@@ -7,53 +7,47 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ArrowLeft } from 'lucide-react';
 import { addHabit, Milestone } from '@/lib/habit-store';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client'; // Import Supabase client
 
 const AddHabitPage: React.FC = () => {
   const [endGoal, setEndGoal] = useState('');
   const [aiSuggestions, setAiSuggestions] = useState<Milestone[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleGenerateSuggestions = () => {
+  const handleGenerateSuggestions = async () => {
     if (!endGoal.trim()) {
       toast.error("Please enter your end goal.");
       return;
     }
 
-    // Simulate AI response for incremental steps
-    const simulatedMilestones: Milestone[] = [];
-    const goalLower = endGoal.toLowerCase();
+    setIsLoading(true);
+    setShowSuggestions(false); // Hide previous suggestions while loading
+    const loadingToastId = toast.loading("Generating AI suggestions...");
 
-    if (goalLower.includes('walk') && goalLower.includes('steps')) {
-      simulatedMilestones.push(
-        { goal: "Start with 1000 steps a day", targetDays: 3, completedDays: 0, isCompleted: false },
-        { goal: "Increase to 3000 steps a day", targetDays: 5, completedDays: 0, isCompleted: false },
-        { goal: "Reach 5000 steps a day", targetDays: 7, completedDays: 0, isCompleted: false },
-        { goal: `Achieve your end goal of ${endGoal}`, targetDays: 10, completedDays: 0, isCompleted: false }
-      );
-    } else if (goalLower.includes('read') && goalLower.includes('book')) {
-      simulatedMilestones.push(
-        { goal: "Read 10 pages a day", targetDays: 5, completedDays: 0, isCompleted: false },
-        { goal: "Read 20 pages a day", targetDays: 7, completedDays: 0, isCompleted: false },
-        { goal: `Finish your book: ${endGoal}`, targetDays: 14, completedDays: 0, isCompleted: false }
-      );
-    } else if (goalLower.includes('exercise') || goalLower.includes('workout')) {
-      simulatedMilestones.push(
-        { goal: "Exercise 15 minutes, 3 times a week", targetDays: 3, completedDays: 0, isCompleted: false },
-        { goal: "Exercise 30 minutes, 4 times a week", targetDays: 4, completedDays: 0, isCompleted: false },
-        { goal: `Achieve your fitness goal: ${endGoal}`, targetDays: 7, completedDays: 0, isCompleted: false }
-      );
-    } else {
-      simulatedMilestones.push(
-        { goal: `Start with a small step towards: ${endGoal}`, targetDays: 3, completedDays: 0, isCompleted: false },
-        { goal: `Continue building momentum for: ${endGoal}`, targetDays: 5, completedDays: 0, isCompleted: false },
-        { goal: `Work towards your ultimate goal: ${endGoal}`, targetDays: 7, completedDays: 0, isCompleted: false }
-      );
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-milestones', {
+        body: { endGoal },
+      });
+
+      if (error) {
+        console.error("Error invoking Edge Function:", error);
+        toast.error(`Failed to generate suggestions: ${error.message}`, { id: loadingToastId });
+        setAiSuggestions([]);
+      } else {
+        // The Edge Function is designed to return Milestone[] directly
+        setAiSuggestions(data as Milestone[]);
+        setShowSuggestions(true);
+        toast.success("AI suggestions generated!", { id: loadingToastId });
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err);
+      toast.error("An unexpected error occurred.", { id: loadingToastId });
+      setAiSuggestions([]);
+    } finally {
+      setIsLoading(false);
     }
-
-    setAiSuggestions(simulatedMilestones);
-    setShowSuggestions(true);
-    toast.success("AI suggestions generated!");
   };
 
   const handleAddHabit = () => {
@@ -97,8 +91,9 @@ const AddHabitPage: React.FC = () => {
             <Button
               onClick={handleGenerateSuggestions}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600"
+              disabled={isLoading}
             >
-              Generate AI Suggestions
+              {isLoading ? "Generating..." : "Generate AI Suggestions"}
             </Button>
 
             {showSuggestions && (
@@ -112,7 +107,7 @@ const AddHabitPage: React.FC = () => {
                   ))}
                 </ul>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-                  <strong className="text-red-500">Note:</strong> This is a simulated AI response. For real AI capabilities, you would integrate a backend service (e.g., a serverless function on Supabase) to call an actual AI API.
+                  <strong className="text-red-500">Note:</strong> This uses a Supabase Edge Function to call a free AI API. Ensure you've set your Hugging Face API token as a secret in Supabase.
                 </p>
                 <Button
                   onClick={handleAddHabit}
