@@ -20,7 +20,8 @@ serve(async (req) => {
       });
     }
 
-    const HF_API_URL = "https://api-inference.huggingface.co/models/google/flan-t5-small";
+    // Updated to a more robust instruction-tuned model
+    const HF_API_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2";
     const HF_API_TOKEN = Deno.env.get("HF_API_TOKEN");
 
     if (!HF_API_TOKEN) {
@@ -30,7 +31,8 @@ serve(async (req) => {
       });
     }
 
-    const prompt = `Generate 3-4 incremental milestones for the goal: "${endGoal}". Each milestone should have a "goal" (string, e.g., "Walk 1000 steps") and "targetDays" (number, e.g., 3). Return as a JSON array of objects. Example: [{"goal": "Start with 1000 steps", "targetDays": 3}, {"goal": "Increase to 3000 steps", "targetDays": 5}]`;
+    // Refined prompt for instruction-tuned models
+    const prompt = `[INST] Generate 3-4 incremental milestones for the goal: "${endGoal}". Each milestone should have a "goal" (string, e.g., "Walk 1000 steps") and "targetDays" (number, e.g., 3). Return only a JSON array of objects. Do not include any other text or formatting. Example: [{"goal": "Start with 1000 steps", "targetDays": 3}, {"goal": "Increase to 3000 steps", "targetDays": 5}] [/INST]`;
 
     const response = await fetch(HF_API_URL, {
       headers: {
@@ -42,7 +44,7 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      const errorText = await response.text(); // Get raw text instead of trying to parse JSON
+      const errorText = await response.text();
       console.error(`Hugging Face API error: Status ${response.status} (${response.statusText}), Body: ${errorText}`);
       return new Response(JSON.stringify({ error: `AI API error: Status ${response.status}, Message: ${errorText}` }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
