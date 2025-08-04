@@ -1,4 +1,5 @@
-import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export interface Milestone {
   goal: string; // e.g., "Walk 1000 steps"
@@ -9,96 +10,142 @@ export interface Milestone {
 
 export interface Habit {
   id: string;
+  user_id: string; // Added user_id to link to Supabase auth.users
   name: string; // The end goal, e.g., "Walk 7000 steps a day"
-  currentStreak: number;
-  lastCompletedDate: string | null; // ISO date string
+  current_streak: number; // Renamed to match snake_case for Supabase
+  last_completed_date: string | null; // ISO date string, renamed for Supabase
   milestones: Milestone[];
-  createdAt: string; // ISO date string
+  created_at: string; // ISO date string, renamed for Supabase
 }
 
-const HABITS_STORAGE_KEY = 'habit_tracker_habits';
+export const getHabits = async (userId: string): Promise<Habit[]> => {
+  const { data, error } = await supabase
+    .from('habits')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
 
-export const getHabits = (): Habit[] => {
-  if (typeof window === 'undefined') {
+  if (error) {
+    console.error('Error fetching habits:', error);
+    toast.error('Failed to load habits.');
     return [];
   }
-  const habitsJson = localStorage.getItem(HABITS_STORAGE_KEY);
-  return habitsJson ? JSON.parse(habitsJson) : [];
+  return data as Habit[];
 };
 
-export const saveHabits = (habits: Habit[]): void => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem(HABITS_STORAGE_KEY, JSON.stringify(habits));
-  }
-};
-
-export const addHabit = (name: string, milestones: Milestone[]): Habit => {
-  const newHabit: Habit = {
-    id: uuidv4(),
+export const addHabit = async (userId: string, name: string, milestones: Milestone[]): Promise<Habit | null> => {
+  const newHabit = {
+    user_id: userId,
     name,
-    currentStreak: 0,
-    lastCompletedDate: null,
+    current_streak: 0,
+    last_completed_date: null,
     milestones,
-    createdAt: new Date().toISOString(),
+    created_at: new Date().toISOString(),
   };
-  const habits = getHabits();
-  saveHabits([...habits, newHabit]);
-  return newHabit;
+
+  const { data, error } = await supabase
+    .from('habits')
+    .insert([newHabit])
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error adding habit:', error);
+    toast.error('Failed to add habit.');
+    return null;
+  }
+  return data as Habit;
 };
 
-export const updateHabit = (updatedHabit: Habit): void => {
-  const habits = getHabits();
-  const updatedHabits = habits.map(habit =>
-    habit.id === updatedHabit.id ? updatedHabit : habit
-  );
-  saveHabits(updatedHabits);
+export const updateHabit = async (updatedHabit: Habit): Promise<Habit | null> => {
+  const { data, error } = await supabase
+    .from('habits')
+    .update(updatedHabit)
+    .eq('id', updatedHabit.id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Error updating habit:', error);
+    toast.error('Failed to update habit.');
+    return null;
+  }
+  return data as Habit;
 };
 
-export const deleteHabit = (id: string): void => {
-  const habits = getHabits();
-  const filteredHabits = habits.filter(habit => habit.id !== id);
-  saveHabits(filteredHabits);
+export const deleteHabit = async (id: string): Promise<boolean> => {
+  const { error } = await supabase
+    .from('habits')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Error deleting habit:', error);
+    toast.error('Failed to delete habit.');
+    return false;
+  }
+  return true;
 };
 
-export const markHabitCompleted = (id: string): void => {
-  const habits = getHabits();
+export const markHabitCompleted = async (habitId: string, userId: string): Promise<boolean> => {
+  const { data: habits, error: fetchError } = await supabase
+    .from('habits')
+    .select('*')
+    .eq('id', habitId)
+    .eq('user_id', userId)
+    .single();
+
+  if (fetchError || !habits) {
+    console.error('Error fetching habit to mark completed:', fetchError);
+    toast.error('Failed to find habit to mark completed.');
+    return false;
+  }
+
+  const habit = habits as Habit;
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-  const updatedHabits = habits.map(habit => {
-    if (habit.id === id) {
-      const lastCompletionDay = habit.lastCompletedDate ? new Date(habit.lastCompletedDate).toISOString().split('T')[0] : null;
-      if (lastCompletionDay === today) {
-        // Already marked for today, do nothing
-        return habit;
-      }
 
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayString = yesterday.toISOString().split('T')[0];
+  const lastCompletionDay = habit.last_completed_date ? new Date(habit.last_completed_date).toISOString().split('T')[0] : null;
 
-      let newStreak = habit.currentStreak;
-      if (lastCompletionDay === yesterdayString) {
-        newStreak += 1;
-      } else if (lastCompletionDay !== today) {
-        // If not completed yesterday and not today, reset streak
-        newStreak = 1;
-      }
+  if (lastCompletionDay === today) {
+    // Already marked for today, do nothing
+    toast.info('Habit already marked completed for today.');
+    return true;
+  }
 
-      // Update current milestone's completed days
-      const updatedMilestones = habit.milestones.map((milestone, index) => {
-        if (!milestone.isCompleted && index === 0) { // Assuming the first incomplete milestone is the current one
-          return { ...milestone, completedDays: milestone.completedDays + 1 };
-        }
-        return milestone;
-      });
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayString = yesterday.toISOString().split('T')[0];
 
-      return {
-        ...habit,
-        currentStreak: newStreak,
-        lastCompletedDate: today,
-        milestones: updatedMilestones,
-      };
+  let newStreak = habit.current_streak;
+  if (lastCompletionDay === yesterdayString) {
+    newStreak += 1;
+  } else if (lastCompletionDay !== today) {
+    // If not completed yesterday and not today, reset streak
+    newStreak = 1;
+  }
+
+  // Update current milestone's completed days
+  const updatedMilestones = habit.milestones.map((milestone, index) => {
+    if (!milestone.isCompleted && index === 0) { // Assuming the first incomplete milestone is the current one
+      return { ...milestone, completedDays: milestone.completedDays + 1 };
     }
-    return habit;
+    return milestone;
   });
-  saveHabits(updatedHabits);
+
+  const { error: updateError } = await supabase
+    .from('habits')
+    .update({
+      current_streak: newStreak,
+      last_completed_date: today,
+      milestones: updatedMilestones,
+    })
+    .eq('id', habitId)
+    .eq('user_id', userId);
+
+  if (updateError) {
+    console.error('Error updating habit completion:', updateError);
+    toast.error('Failed to mark habit completed.');
+    return false;
+  }
+  return true;
 };

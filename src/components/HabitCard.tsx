@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useSession } from '@/components/SessionContextProvider'; // Import useSession
 
 interface HabitCardProps {
   habit: Habit;
@@ -20,34 +21,50 @@ interface HabitCardProps {
 }
 
 const HabitCard: React.FC<HabitCardProps> = ({ habit, onHabitUpdate }) => {
-  const handleMarkCompleted = () => {
-    markHabitCompleted(habit.id);
-    onHabitUpdate();
-    toast.success(`Habit "${habit.name}" marked as completed for today!`);
+  const { user } = useSession(); // Get user from session context
+
+  const handleMarkCompleted = async () => {
+    if (!user) {
+      toast.error("You must be logged in to mark habits completed.");
+      return;
+    }
+    const success = await markHabitCompleted(habit.id, user.id);
+    if (success) {
+      onHabitUpdate();
+      toast.success(`Habit "${habit.name}" marked as completed for today!`);
+    }
   };
 
-  const handleDelete = () => {
-    deleteHabit(habit.id);
-    onHabitUpdate();
-    toast.info(`Habit "${habit.name}" deleted.`);
+  const handleDelete = async () => {
+    const success = await deleteHabit(habit.id);
+    if (success) {
+      onHabitUpdate();
+      toast.info(`Habit "${habit.name}" deleted.`);
+    }
   };
 
   const currentMilestone = habit.milestones.find(m => !m.isCompleted);
   const nextMilestoneIndex = habit.milestones.findIndex(m => !m.isCompleted);
 
   React.useEffect(() => {
-    if (currentMilestone && currentMilestone.completedDays >= currentMilestone.targetDays) {
-      const updatedMilestones = habit.milestones.map((m, index) =>
-        index === nextMilestoneIndex ? { ...m, isCompleted: true } : m
-      );
-      updateHabit({ ...habit, milestones: updatedMilestones });
-      onHabitUpdate();
-      toast.success(`Milestone "${currentMilestone.goal}" completed for "${habit.name}"!`);
-    }
+    const checkAndCompleteMilestone = async () => {
+      if (currentMilestone && currentMilestone.completedDays >= currentMilestone.targetDays) {
+        const updatedMilestones = habit.milestones.map((m, index) =>
+          index === nextMilestoneIndex ? { ...m, isCompleted: true } : m
+        );
+        const updatedHabitData = { ...habit, milestones: updatedMilestones };
+        const success = await updateHabit(updatedHabitData);
+        if (success) {
+          onHabitUpdate();
+          toast.success(`Milestone "${currentMilestone.goal}" completed for "${habit.name}"!`);
+        }
+      }
+    };
+    checkAndCompleteMilestone();
   }, [currentMilestone, habit, nextMilestoneIndex, onHabitUpdate]);
 
   const today = new Date().toISOString().split('T')[0];
-  const isCompletedToday = habit.lastCompletedDate === today;
+  const isCompletedToday = habit.last_completed_date === today; // Use last_completed_date
 
   const progressValue = currentMilestone
     ? (currentMilestone.completedDays / currentMilestone.targetDays) * 100
@@ -63,7 +80,7 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onHabitUpdate }) => {
       </CardHeader>
       <CardContent className="p-4 pt-0">
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-          Current Streak: <span className="font-bold text-lg text-blue-600 dark:text-blue-400">{habit.currentStreak} days</span>
+          Current Streak: <span className="font-bold text-lg text-blue-600 dark:text-blue-400">{habit.current_streak} days</span>
         </p>
         {currentMilestone ? (
           <div className="mb-4">

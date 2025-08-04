@@ -1,32 +1,72 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
-import { Plus } from 'lucide-react';
+import { Plus, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getHabits, Habit } from '@/lib/habit-store';
 import HabitCard from '@/components/HabitCard';
+import { useSession } from '@/components/SessionContextProvider'; // Import useSession
+import { supabase } from '@/integrations/supabase/client'; // Import supabase client
+import { toast } from 'sonner';
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, isLoading } = useSession(); // Get user and loading state from session context
   const [habits, setHabits] = useState<Habit[]>([]);
+  const [isHabitsLoading, setIsHabitsLoading] = useState(true);
 
-  const loadHabits = useCallback(() => {
-    setHabits(getHabits());
-  }, []);
+  const loadHabits = useCallback(async () => {
+    if (user) {
+      setIsHabitsLoading(true);
+      const fetchedHabits = await getHabits(user.id);
+      setHabits(fetchedHabits);
+      setIsHabitsLoading(false);
+    } else {
+      setHabits([]);
+      setIsHabitsLoading(false);
+    }
+  }, [user]);
 
   useEffect(() => {
-    loadHabits();
-  }, [loadHabits]);
+    if (!isLoading) { // Only load habits once session loading is complete
+      loadHabits();
+    }
+  }, [isLoading, loadHabits]);
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error(`Logout failed: ${error.message}`);
+    } else {
+      toast.info("You have been logged out.");
+      navigate('/login');
+    }
+  };
+
+  if (isLoading || isHabitsLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <p className="text-gray-700 dark:text-gray-300">Loading habits...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-50 dark:bg-gray-900 p-4 relative">
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 flex space-x-2">
         <Button
           size="icon"
           className="rounded-full w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
           onClick={() => navigate('/add-habit')}
         >
           <Plus className="h-6 w-6" />
+        </Button>
+        <Button
+          size="icon"
+          variant="outline"
+          className="rounded-full w-12 h-12 border-red-500 text-red-500 hover:bg-red-50 dark:border-red-400 dark:text-red-400 dark:hover:bg-gray-700"
+          onClick={handleLogout}
+        >
+          <LogOut className="h-6 w-6" />
         </Button>
       </div>
 
@@ -49,9 +89,7 @@ const Index = () => {
         )}
       </div>
 
-      <div className="mt-auto py-4">
-        <MadeWithDyad />
-      </div>
+      {/* MadeWithDyad is now in App.tsx for consistent display */}
     </div>
   );
 };

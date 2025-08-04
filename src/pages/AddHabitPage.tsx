@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ArrowLeft } from 'lucide-react';
 import { addHabit, Milestone } from '@/lib/habit-store';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client'; // Import Supabase client
+import { supabase } from '@/integrations/supabase/client';
+import { useSession } from '@/components/SessionContextProvider'; // Import useSession
 
 const AddHabitPage: React.FC = () => {
   const [endGoal, setEndGoal] = useState('');
@@ -15,6 +16,7 @@ const AddHabitPage: React.FC = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { user } = useSession(); // Get user from session context
 
   const handleGenerateSuggestions = async () => {
     if (!endGoal.trim()) {
@@ -36,7 +38,6 @@ const AddHabitPage: React.FC = () => {
         toast.error(`Failed to generate suggestions: ${error.message}`, { id: loadingToastId });
         setAiSuggestions([]);
       } else {
-        // The Edge Function is designed to return Milestone[] directly
         setAiSuggestions(data as Milestone[]);
         setShowSuggestions(true);
         toast.success("AI suggestions generated!", { id: loadingToastId });
@@ -50,14 +51,22 @@ const AddHabitPage: React.FC = () => {
     }
   };
 
-  const handleAddHabit = () => {
+  const handleAddHabit = async () => {
     if (!endGoal.trim() || aiSuggestions.length === 0) {
       toast.error("Please generate AI suggestions first.");
       return;
     }
-    addHabit(endGoal, aiSuggestions);
-    toast.success(`Habit "${endGoal}" added successfully!`);
-    navigate('/');
+    if (!user) {
+      toast.error("You must be logged in to add a habit.");
+      navigate('/login');
+      return;
+    }
+
+    const added = await addHabit(user.id, endGoal, aiSuggestions);
+    if (added) {
+      toast.success(`Habit "${endGoal}" added successfully!`);
+      navigate('/');
+    }
   };
 
   return (
