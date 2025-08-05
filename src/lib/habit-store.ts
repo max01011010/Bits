@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { addDays, addWeeks, addMonths, addYears, isAfter, parseISO } from 'date-fns';
 
 export interface Milestone {
   goal: string; // e.g., "Walk 1000 steps"
@@ -43,9 +44,9 @@ export const addHabit = async (
   userId: string,
   name: string,
   milestones: Milestone[],
-  repeatMode: 'forever' | 'duration',
-  repeatDurationValue: number | null,
-  repeatDurationUnit: 'days' | 'weeks' | 'months' | 'years' | null
+  repeatMode: 'forever' | 'duration' = 'forever', // Default to forever
+  repeatDurationValue: number | null = null,
+  repeatDurationUnit: 'days' | 'weeks' | 'months' | 'years' | null = null
 ): Promise<Habit | null> => {
   const newHabit = {
     user_id: userId,
@@ -106,6 +107,26 @@ export const deleteHabit = async (id: string): Promise<boolean> => {
   return true;
 };
 
+// Helper function to calculate end date for duration-based habits
+const calculateEndDate = (startDate: string, value: number, unit: 'days' | 'weeks' | 'months' | 'years'): Date => {
+  let date = parseISO(startDate);
+  switch (unit) {
+    case 'days':
+      date = addDays(date, value);
+      break;
+    case 'weeks':
+      date = addWeeks(date, value);
+      break;
+    case 'months':
+      date = addMonths(date, value);
+      break;
+    case 'years':
+      date = addYears(date, value);
+      break;
+  }
+  return date;
+};
+
 export const markHabitCompleted = async (habitId: string, userId: string): Promise<boolean> => {
   const { data: habits, error: fetchError } = await supabase
     .from('habits')
@@ -122,6 +143,12 @@ export const markHabitCompleted = async (habitId: string, userId: string): Promi
 
   const habit = habits as Habit;
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+  // If habit is not active, it cannot be marked completed
+  if (!habit.is_active) {
+    toast.info('This habit is no longer active.');
+    return false;
+  }
 
   const lastCompletionDay = habit.last_completed_date ? new Date(habit.last_completed_date).toISOString().split('T')[0] : null;
 
@@ -144,12 +171,51 @@ export const markHabitCompleted = async (habitId: string, userId: string): Promi
   }
 
   // Update current milestone's completed days
-  const updatedMilestones = habit.milestones.map((milestone, index) => {
+  let updatedMilestones = habit.milestones.map((milestone, index) => {
     if (!milestone.isCompleted && index === 0) { // Assuming the first incomplete milestone is the current one
       return { ...milestone, completedDays: milestone.completedDays + 1 };
     }
     return milestone;
   });
+
+  let newIsActive = habit.is_active;
+  let newCompletionCount = habit.completion_count;
+  let newStartDate = habit.start_date; // Keep original start date unless reset
+
+  // Check if the current milestone is now completed
+  const firstUncompletedMilestoneIndex = updatedMilestones.findIndex(m => !m.isCompleted);
+  if (firstUncompletedMilestoneIndex === -1) { // All milestones are completed
+    newCompletionCount += 1; // Increment completion count for the habit
+
+    if (habit.repeat_mode === 'forever') {
+      // Reset all milestones for a new cycle
+      updatedMilestones = habit.milestones.map(m => ({
+        ...m,
+        completedDays: 0,
+        isCompleted: false,
+      }));
+      toast.success(`Habit "${habit.name}" completed a cycle and reset!`);
+    } else if (habit.repeat_mode === 'duration' && habit.repeat_duration_value && habit.repeat_duration_unit) {
+      const endDate = calculateEndDate(habit.start_date, habit.repeat_duration_value, habit.repeat_duration_unit);
+      const now = new Date();
+
+      if (isAfter(now, endDate)) {
+        // Duration has passed, mark habit as inactive
+        newIsActive = false;
+        toast.info(`Habit "${habit.name}" duration ended. It is now inactive.`);
+      } else {
+        // Duration has not passed, reset milestones for a new cycle
+        updatedMilestones = habit.milestones.map(m => ({
+          ...m,
+          completedDays: 0,
+          isCompleted: false,
+        }));
+        // Optionally, reset start_date to today if a new cycle begins within the duration
+        // For simplicity, we'll keep the original start_date for duration calculation
+        toast.success(`Habit "${habit.name}" completed a cycle and reset!`);
+      }
+    }
+  }
 
   const { error: updateError } = await supabase
     .from('habits')
@@ -157,6 +223,9 @@ export const markHabitCompleted = async (habitId: string, userId: string): Promi
       current_streak: newStreak,
       last_completed_date: today,
       milestones: updatedMilestones,
+      is_active: newIsActive,
+      completion_count: newCompletionCount,
+      start_date: newStartDate, // Ensure start_date is not accidentally changed
     })
     .eq('id', habitId)
     .eq('user_id', userId);

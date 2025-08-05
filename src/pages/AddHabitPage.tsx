@@ -9,6 +9,9 @@ import { addHabit, Milestone } from '@/lib/habit-store';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useSession } from '@/components/SessionContextProvider';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 // Define the structure for AI-generated achievements
 interface GeneratedAchievement {
@@ -20,9 +23,13 @@ interface GeneratedAchievement {
 const AddHabitPage: React.FC = () => {
   const [endGoal, setEndGoal] = useState('');
   const [aiSuggestions, setAiSuggestions] = useState<Milestone[]>([]);
-  const [aiAchievements, setAiAchievements] = useState<GeneratedAchievement[]>([]); // New state for achievements
+  const [aiAchievements, setAiAchievements] = useState<GeneratedAchievement[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [repeatMode, setRepeatMode] = useState<'forever' | 'duration'>('forever');
+  const [repeatDurationValue, setRepeatDurationValue] = useState<number | ''>('');
+  const [repeatDurationUnit, setRepeatDurationUnit] = useState<'days' | 'weeks' | 'months' | 'years'>('weeks');
+
   const navigate = useNavigate();
   const { user } = useSession();
 
@@ -72,7 +79,27 @@ const AddHabitPage: React.FC = () => {
       return;
     }
 
-    const addedHabit = await addHabit(user.id, endGoal, aiSuggestions);
+    let finalRepeatDurationValue: number | null = null;
+    let finalRepeatDurationUnit: 'days' | 'weeks' | 'months' | 'years' | null = null;
+
+    if (repeatMode === 'duration') {
+      if (repeatDurationValue === '' || isNaN(Number(repeatDurationValue)) || Number(repeatDurationValue) <= 0) {
+        toast.error("Please enter a valid positive number for duration.");
+        return;
+      }
+      finalRepeatDurationValue = Number(repeatDurationValue);
+      finalRepeatDurationUnit = repeatDurationUnit;
+    }
+
+    const addedHabit = await addHabit(
+      user.id,
+      endGoal,
+      aiSuggestions,
+      repeatMode,
+      finalRepeatDurationValue,
+      finalRepeatDurationUnit
+    );
+
     if (addedHabit) {
       // Now, save the AI-generated achievements
       if (aiAchievements.length > 0) {
@@ -81,7 +108,7 @@ const AddHabitPage: React.FC = () => {
           habit_id: addedHabit.id, // Link achievement to the newly created habit
           name: ach.name,
           description: ach.description,
-          icon_name: ach.icon_name, // Corrected: Use ach.icon_name to match Edge Function output
+          icon_name: ach.icon_name,
           is_unlocked: false,
           unlocked_at: null,
         }));
@@ -162,6 +189,49 @@ const AddHabitPage: React.FC = () => {
                     </ul>
                   </div>
                 )}
+
+                <div className="mt-6">
+                  <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-gray-100">Repeat Settings:</h3>
+                  <RadioGroup
+                    defaultValue="forever"
+                    value={repeatMode}
+                    onValueChange={(value: 'forever' | 'duration') => setRepeatMode(value)}
+                    className="flex flex-col space-y-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="forever" id="repeat-forever" />
+                      <Label htmlFor="repeat-forever">Repeat Forever</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="duration" id="repeat-duration" />
+                      <Label htmlFor="repeat-duration">Repeat for a set duration</Label>
+                    </div>
+                  </RadioGroup>
+
+                  {repeatMode === 'duration' && (
+                    <div className="flex items-center space-x-2 mt-4">
+                      <Input
+                        type="number"
+                        placeholder="e.g., 3"
+                        value={repeatDurationValue}
+                        onChange={(e) => setRepeatDurationValue(e.target.value === '' ? '' : Number(e.target.value))}
+                        className="w-24 text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400"
+                        min="1"
+                      />
+                      <Select value={repeatDurationUnit} onValueChange={(value: 'days' | 'weeks' | 'months' | 'years') => setRepeatDurationUnit(value)}>
+                        <SelectTrigger className="w-[120px] text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400">
+                          <SelectValue placeholder="Unit" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+                          <SelectItem value="days">Days</SelectItem>
+                          <SelectItem value="weeks">Weeks</SelectItem>
+                          <SelectItem value="months">Months</SelectItem>
+                          <SelectItem value="years">Years</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
 
                 <Button
                   onClick={handleAddHabit}
