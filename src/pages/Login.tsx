@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 const Login: React.FC = () => {
   // This state directly controls the 'view' prop of the Auth component.
   // It can be 'sign_in', 'sign_up', 'magic_link', 'forgotten_password', or 'update_password'.
-  const [currentAuthView, setCurrentAuthView] = useState<'sign_in' | 'sign_up' | 'magic_link' | 'forgotten_password' | 'update_password'>('magic_link');
+  const [currentAuthView, setCurrentAuthView] = useState<'sign_in' | 'sign_up' | 'magic_link' | 'forgotten_password' | 'update_password'>('magic_in'); // Start with sign_in as default for password flow
 
   // Function to handle top button clicks
   const handleAuthMethodChange = (method: 'password' | 'magic_link') => {
@@ -40,7 +40,7 @@ const Login: React.FC = () => {
               Magic Link
             </Button>
             <Button
-              variant={currentAuthView === 'sign_in' || currentAuthView === 'sign_up' || currentAuthView === 'forgotten_password' || currentAuthView === 'update_password' ? 'default' : 'outline'}
+              variant={['sign_in', 'forgotten_password', 'update_password'].includes(currentAuthView) ? 'default' : 'outline'}
               onClick={() => handleAuthMethodChange('password')}
               className="w-1/2"
             >
@@ -54,7 +54,7 @@ const Login: React.FC = () => {
             providers={[]}
             theme="light"
             redirectTo={window.location.origin}
-            magicLink={true}
+            magicLink={false} // Explicitly disable magicLink prop to rely solely on 'view'
             view={currentAuthView} // Explicitly control the view
             onViewChange={setCurrentAuthView} // Allow Auth component to update our state when internal links are clicked
             localization={{
