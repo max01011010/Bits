@@ -37,12 +37,7 @@ serve(async (req) => {
     }
 
     // Updated prompt to request both milestones and achievements with a curated list of valid Lucide icon names (PascalCase)
-    const promptContent = `Generate 3-4 incremental milestones and 2-3 custom achievements for the goal: "${endGoal}".
-    Each milestone should have a "goal" (string, e.g., "Walk 1000 steps") and "targetDays" (number, e.g., 3).
-    Each achievement should have a "name" (string), "description" (string), and a "lucide_icon_name" (string, a valid Lucide icon component name from this exact list: ${VALID_LUCIDE_ICONS.map(icon => `'${icon}'`).join(', ')}).
-    Return only a JSON object with two keys: "milestones" (array of milestone objects) and "achievements" (array of achievement objects).
-    Do not include any other text or formatting.
-    Example: {"milestones": [{"goal": "Start with 1000 steps", "targetDays": 3}], "achievements": [{"name": "First Step", "description": "Completed your first step", "lucide_icon_name": "Footprints"}]}`;
+    const promptContent = `Generate 3-4 incremental, small, and achievable milestones designed to be completed over a long period, and 2-3 custom achievements for the goal: "${endGoal}". Each milestone should have a "goal" (string, e.g., "Complete 10 minutes of exercise") and "targetDays" (number, e.g., 5). Emphasize breaking down the main goal into very manageable, progressive steps. For example, for a goal like "Read 12 books every year", milestones should be like "Read half a book in the next 30 days", "Completely read one book in 30 days", "Read 3 books in 90 days". Each achievement should have a "name" (string), "description" (string), and a "lucide_icon_name" (string, a valid Lucide icon component name from this exact list: ${VALID_LUCIDE_ICONS.map(icon => `'${icon}'`).join(', ')}). Return only a JSON object with two keys: "milestones" (array of milestone objects) and "achievements" (array of achievement objects). Do not include any other text or formatting.`;
 
     const response = await fetch(HF_API_URL, {
       headers: {
