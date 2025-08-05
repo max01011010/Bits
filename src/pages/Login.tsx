@@ -9,6 +9,8 @@ const Login: React.FC = () => {
   const [authMethod, setAuthMethod] = useState<'password' | 'magic_link'>('magic_link'); // Default to magic link for sign-in
 
   // Determine the view for the Auth component
+  // This state is now primarily for controlling the top buttons,
+  // allowing the Auth component to manage its internal view changes.
   const currentView = authMethod === 'magic_link' ? 'magic_link' : 'sign_in';
 
   return (
@@ -46,8 +48,8 @@ const Login: React.FC = () => {
             providers={[]}
             theme="light"
             redirectTo={window.location.origin}
-            magicLink={true} // Changed to true to re-enable the magic link option
-            view={currentView}
+            magicLink={true} // Keep magic link enabled for sign-in
+            // Removed view={currentView} to allow Auth component to manage its own internal view changes
             localization={{
               variables: {
                 sign_in: {
@@ -65,7 +67,7 @@ const Login: React.FC = () => {
                   password_label: 'Create a password',
                   email_input_placeholder: 'Your email address',
                   password_input_placeholder: 'Create a password',
-                  button_label: 'Sign Up',
+                  button_label: 'Sign Up', // This is already 'Sign Up'
                   social_provider_text: 'Sign up with {{provider}}',
                   link_text: '', // This line has been changed to remove the link
                   confirmation_text: 'Check your email for the magic link!',
