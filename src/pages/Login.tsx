@@ -56,7 +56,6 @@ const Login: React.FC = () => {
             redirectTo={window.location.origin}
             magicLink={false} // Explicitly disable magicLink prop to rely solely on 'view'
             view={currentAuthView} // Explicitly control the view
-            onViewChange={setCurrentAuthView} // Allow Auth component to update our state when internal links are clicked
             localization={{
               variables: {
                 sign_in: {
