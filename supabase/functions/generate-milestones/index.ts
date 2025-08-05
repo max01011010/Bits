@@ -53,7 +53,7 @@ For example:
   - Milestone 2: "Perform 20 push-ups" (targetDays: 5)
 
 Each milestone should have a "goal" (string, e.g., "Complete 10 minutes of exercise") and "targetDays" (number).
-Each achievement should have a "name" (string), "description" (string), and a "lucide_icon_name" (string, a valid Lucide icon component name from this exact list: ${VALID_LUCIDE_ICONS.map(icon => `'${icon}'`).join(', ')}).
+Each achievement should have a "name" (string), "description" (string), a "lucide_icon_name" (string, a valid Lucide icon component name from this exact list: ${VALID_LUCIDE_ICONS.map(icon => `'${icon}'`).join(', ')}), and a "trigger_condition" (string, describing which milestone completion unlocks it, e.g., "Complete the 3rd milestone", "Complete all milestones").
 Return only a JSON object with two keys: "milestones" (array of milestone objects) and "achievements" (array of achievement objects). Do not include any other text or formatting.`;
 
     const response = await fetch(HF_API_URL, {
@@ -113,8 +113,8 @@ Return only a JSON object with two keys: "milestones" (array of milestone object
       }
 
       // Validate achievements
-      if (!parsedResponse.achievements.every((a: any) => typeof a.name === 'string' && typeof a.description === 'string' && typeof a.lucide_icon_name === 'string')) {
-        throw new Error("Invalid AI response format for achievements: Expected objects with 'name' (string), 'description' (string), and 'lucide_icon_name' (string).");
+      if (!parsedResponse.achievements.every((a: any) => typeof a.name === 'string' && typeof a.description === 'string' && typeof a.lucide_icon_name === 'string' && typeof a.trigger_condition === 'string')) {
+        throw new Error("Invalid AI response format for achievements: Expected objects with 'name' (string), 'description' (string), 'lucide_icon_name' (string), and 'trigger_condition' (string).");
       }
 
     } catch (parseError) {
@@ -142,6 +142,7 @@ Return only a JSON object with two keys: "milestones" (array of milestone object
         name: a.name,
         description: a.description,
         icon_name: iconName,
+        trigger_condition: a.trigger_condition, // Store the trigger condition
         is_unlocked: false, // Initially unlocked
         unlocked_at: null,
       };

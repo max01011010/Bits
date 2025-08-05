@@ -17,7 +17,8 @@ import { Input } from "@/components/ui/input";
 interface GeneratedAchievement {
   name: string;
   description: string;
-  icon_name: string; // Changed from lucide_icon_name to icon_name to match Edge Function output
+  icon_name: string;
+  trigger_condition: string; // Added trigger_condition
 }
 
 const AddHabitPage: React.FC = () => {
@@ -109,6 +110,7 @@ const AddHabitPage: React.FC = () => {
           name: ach.name,
           description: ach.description,
           icon_name: ach.icon_name,
+          trigger_condition: ach.trigger_condition, // Save the trigger condition
           is_unlocked: false,
           unlocked_at: null,
         }));
@@ -183,7 +185,7 @@ const AddHabitPage: React.FC = () => {
                     <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
                       {aiAchievements.map((ach, index) => (
                         <li key={index}>
-                          <span className="font-medium">{ach.name}:</span> {ach.description} (Icon: {ach.icon_name})
+                          <span className="font-medium">{ach.name}:</span> {ach.description} (Icon: {ach.icon_name}) <span className="text-sm text-gray-500 dark:text-gray-400">({ach.trigger_condition})</span>
                         </li>
                       ))}
                     </ul>
