@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 const Login: React.FC = () => {
   // This state directly controls the 'view' prop of the Auth component.
   // It can be 'sign_in', 'sign_up', 'magic_link', 'forgotten_password', or 'update_password'.
-  const [currentAuthView, setCurrentAuthView] = useState<'sign_in' | 'sign_up' | 'magic_link' | 'forgotten_password' | 'update_password'>('magic_in'); // Start with sign_in as default for password flow
+  const [currentAuthView, setCurrentAuthView] = useState<'sign_in' | 'sign_up' | 'magic_link' | 'forgotten_password' | 'update_password'>('sign_in'); // Corrected initial state to 'sign_in'
 
   // Function to handle top button clicks
   const handleAuthMethodChange = (method: 'password' | 'magic_link') => {
