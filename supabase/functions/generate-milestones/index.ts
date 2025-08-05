@@ -36,13 +36,22 @@ serve(async (req) => {
       });
     }
 
-    // Updated prompt to request up to 12 milestones
-    const promptContent = `Generate 8-12 incremental, small, and achievable milestones, and 2-3 custom achievements for the goal: "${endGoal}".
-Each milestone should represent a daily actionable step towards the goal. The "targetDays" for each milestone should be a number between 3 and 15, indicating how many *daily completions* of that specific action are needed to complete the milestone.
-For example, if the end goal is "Create an app every month for a year", the milestones should be daily actions like:
-- "Spend 1 hour coding daily" (targetDays: 7)
-- "Research new features for 30 minutes daily" (targetDays: 5)
-- "Debug and test code for 45 minutes daily" (targetDays: 10)
+    // Updated prompt for quantitative milestones and shorter targetDays
+    const promptContent = `Generate 8-12 incremental, quantitative, and measurable daily actionable milestones, and 2-3 custom achievements for the goal: "${endGoal}".
+Each milestone should represent a specific, measurable daily action towards the goal. The "targetDays" for each milestone should be a number between 3 and 7, indicating how many *daily completions* of that specific action are needed to complete the milestone. Ensure that milestones progressively increase in quantity or difficulty, building upon the previous step.
+
+For example:
+- If the end goal is "Walk 7000 steps a day":
+  - Milestone 1: "Walk 1000 steps daily" (targetDays: 3)
+  - Milestone 2: "Walk 2000 steps daily" (targetDays: 5)
+  - Milestone 3: "Walk 3000 steps daily" (targetDays: 7)
+- If the end goal is "Read 1 book a month":
+  - Milestone 1: "Read 10 pages daily" (targetDays: 4)
+  - Milestone 2: "Read 20 pages daily" (targetDays: 6)
+- If the end goal is "Exercise 5 times a week":
+  - Milestone 1: "Complete 15 minutes of cardio" (targetDays: 3)
+  - Milestone 2: "Perform 20 push-ups" (targetDays: 5)
+
 Each milestone should have a "goal" (string, e.g., "Complete 10 minutes of exercise") and "targetDays" (number).
 Each achievement should have a "name" (string), "description" (string), and a "lucide_icon_name" (string, a valid Lucide icon component name from this exact list: ${VALID_LUCIDE_ICONS.map(icon => `'${icon}'`).join(', ')}).
 Return only a JSON object with two keys: "milestones" (array of milestone objects) and "achievements" (array of achievement objects). Do not include any other text or formatting.`;
