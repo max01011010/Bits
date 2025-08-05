@@ -163,9 +163,6 @@ const AddHabitPage: React.FC = () => {
                   </div>
                 )}
 
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-                  <strong className="text-red-500">Note:</strong> This uses a Supabase Edge Function to call a free AI API. Ensure you've set your Hugging Face API token as a secret in Supabase.
-                </p>
                 <Button
                   onClick={handleAddHabit}
                   className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white dark:bg-green-500 dark:hover:bg-green-600"
