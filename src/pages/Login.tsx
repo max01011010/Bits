@@ -50,7 +50,9 @@ const Login: React.FC = () => {
 
           <Auth
             supabaseClient={supabase}
-            appearance={{ theme: ThemeSupa }}
+            appearance={{
+              theme: ThemeSupa,
+            }}
             providers={[]}
             theme="light"
             redirectTo={window.location.origin}
