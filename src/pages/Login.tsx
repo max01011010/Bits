@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 
 const Login: React.FC = () => {
-  // This state will directly control the 'view' prop of the Auth component.
-  // It can be 'sign_in', 'sign_up', or 'magic_link'.
+  // This state directly controls the 'view' prop of the Auth component.
+  // It can be 'sign_in', 'sign_up', 'magic_link', 'forgotten_password', or 'update_password'.
   const [currentAuthView, setCurrentAuthView] = useState<'sign_in' | 'sign_up' | 'magic_link' | 'forgotten_password' | 'update_password'>('magic_link');
 
   // Function to handle top button clicks
@@ -50,13 +50,11 @@ const Login: React.FC = () => {
 
           <Auth
             supabaseClient={supabase}
-            appearance={{
-              theme: ThemeSupa,
-            }}
+            appearance={{ theme: ThemeSupa }}
             providers={[]}
             theme="light"
             redirectTo={window.location.origin}
-            magicLink={true} // Keep magic link enabled for the Auth component to handle
+            magicLink={true}
             view={currentAuthView} // Explicitly control the view
             onViewChange={setCurrentAuthView} // Allow Auth component to update our state when internal links are clicked
             localization={{
@@ -78,7 +76,7 @@ const Login: React.FC = () => {
                   password_input_placeholder: 'Create a password',
                   button_label: 'Sign Up', // This is the target button text
                   social_provider_text: 'Sign up with {{provider}}',
-                  link_text: 'Already have an account? Sign In', // This link should trigger onViewChange to 'sign_in'
+                  link_text: '', // Removed this link as requested
                   confirmation_text: 'Check your email for the magic link!',
                 },
                 forgotten_password: {
