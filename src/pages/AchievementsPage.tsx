@@ -7,6 +7,7 @@ import { useSession } from '@/components/SessionContextProvider';
 import { getHabits, Habit } from '@/lib/habit-store';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { differenceInMonths, parseISO } from 'date-fns';
 
 // Map Lucide icon names (as returned by AI) to Lucide icon components
 const LucideIcons: { [key: string]: React.ElementType } = {
@@ -19,6 +20,7 @@ interface Achievement {
   description: string;
   icon: React.ElementType;
   isUnlocked: boolean;
+  trigger_condition?: string; // Optional for global achievements, but present for AI-generated
 }
 
 interface UserAchievementFromDB {
@@ -31,6 +33,7 @@ interface UserAchievementFromDB {
   is_unlocked: boolean;
   unlocked_at: string | null;
   created_at: string;
+  trigger_condition: string | null; // Added trigger_condition
 }
 
 const globalAchievements: Omit<Achievement, 'isUnlocked'>[] = [
@@ -39,18 +42,63 @@ const globalAchievements: Omit<Achievement, 'isUnlocked'>[] = [
     name: 'Habit Former',
     description: 'Complete your 1st Streak',
     icon: LucideIcons['Trophy'] || Award,
+    trigger_condition: 'Complete your 1st streak for any habit',
   },
   {
     id: 'power-of-habit',
     name: 'Power of Habit',
     description: 'Completed your 1st milestone',
     icon: LucideIcons['Sparkles'] || Sparkles,
+    trigger_condition: 'Complete your 1st milestone for any habit',
   },
   {
     id: 'atomic-habit',
     name: 'Atomic Habit',
     description: 'Completed your 1st Goal (all milestones for a habit)',
     icon: LucideIcons['Target'] || Target,
+    trigger_condition: 'Complete all milestones for any habit',
+  },
+  {
+    id: 'repeat-champion',
+    name: 'Repeat Champion',
+    description: 'Started a habit again (completed its first cycle)',
+    icon: LucideIcons['Repeat'] || Award,
+    trigger_condition: 'Complete the first cycle of any habit',
+  },
+  {
+    id: 'consistency-is-key',
+    name: 'Consistency is Key',
+    description: 'Completed a habit to its set repeat limit',
+    icon: LucideIcons['CheckCircle2'] || Award,
+    trigger_condition: 'Complete a duration-based habit',
+  },
+  {
+    id: 'committed',
+    name: 'Committed',
+    description: 'Completed a habit for 3 repeats',
+    icon: LucideIcons['Medal'] || Award,
+    trigger_condition: 'Complete 3 cycles of any habit',
+  },
+  {
+    id: 'practitioner',
+    name: 'Practitioner',
+    description: 'Completed a habit for 6 repeats',
+    icon: LucideIcons['Ribbon'] || Award,
+    trigger_condition: 'Complete 6 cycles of any habit',
+  },
+  {
+    id: 'creature-of-habit',
+    name: 'Creature of Habit',
+    description: 'Completed a habit set to repeat forever for 2 months',
+    icon: LucideIcons['Leaf'] || Award,
+    trigger_condition: 'Maintain a forever habit for 2 months',
+  },
+  {
+    id: 'devotee',
+    name: 'Devotee',
+    description: 'Completed a habit set to repeat forever for 6 months',
+    icon: LucideIcons['Crown'] || Award,
+    trigger_condition: 'Maintain a forever habit for 6 months',
   },
 ];
 
@@ -102,38 +150,96 @@ const AchievementsPage: React.FC = () => {
   }, [isSessionLoading, loadData]);
 
   useEffect(() => {
-    if (!isLoadingData) {
+    if (!isLoadingData && user) {
       const combinedAchievements: Achievement[] = [];
+      const achievementsToInsert: Omit<UserAchievementFromDB, 'id' | 'created_at' | 'unlocked_at'>[] = [];
 
       // Evaluate global achievements
       globalAchievements.forEach(achievement => {
         let isUnlocked = false;
-        if (achievement.id === 'habit-former') {
-          isUnlocked = userHabits.some(h => h.current_streak > 0);
-        } else if (achievement.id === 'power-of-habit') {
-          isUnlocked = userHabits.some(h => h.milestones.some(m => m.isCompleted));
-        } else if (achievement.id === 'atomic-habit') {
-          isUnlocked = userHabits.some(h => h.milestones.every(m => m.isCompleted));
+        const alreadyUnlocked = userAchievements.some(ua => ua.name === achievement.name && ua.is_unlocked);
+
+        if (alreadyUnlocked) {
+          isUnlocked = true;
+        } else {
+          if (achievement.id === 'habit-former') {
+            isUnlocked = userHabits.some(h => h.current_streak > 0);
+          } else if (achievement.id === 'power-of-habit') {
+            isUnlocked = userHabits.some(h => h.milestones.some(m => m.isCompleted));
+          } else if (achievement.id === 'atomic-habit') {
+            isUnlocked = userHabits.some(h => h.milestones.every(m => m.isCompleted));
+          } else if (achievement.id === 'repeat-champion') {
+            isUnlocked = userHabits.some(h => h.completion_count >= 1);
+          } else if (achievement.id === 'consistency-is-key') {
+            isUnlocked = userHabits.some(h => h.repeat_mode === 'duration' && !h.is_active);
+          } else if (achievement.id === 'committed') {
+            isUnlocked = userHabits.some(h => h.completion_count >= 3);
+          } else if (achievement.id === 'practitioner') {
+            isUnlocked = userHabits.some(h => h.completion_count >= 6);
+          } else if (achievement.id === 'creature-of-habit') {
+            isUnlocked = userHabits.some(h =>
+              h.repeat_mode === 'forever' &&
+              differenceInMonths(new Date(), parseISO(h.start_date)) >= 2
+            );
+          } else if (achievement.id === 'devotee') {
+            isUnlocked = userHabits.some(h =>
+              h.repeat_mode === 'forever' &&
+              differenceInMonths(new Date(), parseISO(h.start_date)) >= 6
+            );
+          }
         }
+
         combinedAchievements.push({ ...achievement, isUnlocked });
+
+        // If unlocked and not already in DB, add to batch for insertion
+        if (isUnlocked && !alreadyUnlocked) {
+          achievementsToInsert.push({
+            user_id: user.id,
+            habit_id: null, // Universal achievement
+            name: achievement.name,
+            description: achievement.description,
+            icon_name: achievement.icon.displayName || achievement.icon.name || 'Award', // Get icon name string
+            is_unlocked: true,
+            unlocked_at: new Date().toISOString(),
+            trigger_condition: achievement.trigger_condition || null,
+          });
+        }
       });
 
-      // Add user-specific achievements
+      // Add user-specific achievements (AI-generated)
       userAchievements.forEach(userAch => {
-        // Directly use the icon_name from the DB to get the component
-        const IconComponent = LucideIcons[userAch.icon_name] || Award; // Fallback to Award if icon not found
+        const IconComponent = LucideIcons[userAch.icon_name] || Award;
         combinedAchievements.push({
           id: userAch.id,
           name: userAch.name,
           description: userAch.description,
           icon: IconComponent,
-          isUnlocked: userAch.is_unlocked, // Use the stored unlocked status
+          isUnlocked: userAch.is_unlocked,
+          trigger_condition: userAch.trigger_condition || undefined,
         });
       });
 
       setDisplayedAchievements(combinedAchievements);
+
+      // Perform batch insertion if there are new achievements to unlock
+      if (achievementsToInsert.length > 0) {
+        const insertAchievements = async () => {
+          const { error: insertError } = await supabase
+            .from('user_achievements')
+            .insert(achievementsToInsert);
+
+          if (insertError) {
+            console.error('Error inserting new universal achievements:', insertError);
+            toast.error('Failed to save some new achievements.');
+          } else {
+            toast.success(`New achievement unlocked!`); // Consider more specific toast
+            loadData(); // Re-fetch data to update state with newly inserted achievements
+          }
+        };
+        insertAchievements();
+      }
     }
-  }, [userHabits, userAchievements, isLoadingData]);
+  }, [userHabits, userAchievements, isLoadingData, user, loadData]); // Added loadData to dependencies
 
   if (isSessionLoading || isLoadingData) {
     return (
