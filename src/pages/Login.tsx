@@ -67,7 +67,6 @@ const Login: React.FC = () => {
                   button_label: 'Sign In',
                   social_provider_text: 'Sign in with {{provider}}',
                   link_text: '', // Hide default link
-                  confirmation_text: 'Check your email for the magic link!',
                 },
                 sign_up: {
                   email_label: 'Email address',
@@ -77,7 +76,6 @@ const Login: React.FC = () => {
                   button_label: 'Sign Up',
                   social_provider_text: 'Sign up with {{provider}}',
                   link_text: '', // Hide default link
-                  confirmation_text: 'Check your email for the magic link!',
                 },
                 forgotten_password: {
                   email_label: 'Email address',
