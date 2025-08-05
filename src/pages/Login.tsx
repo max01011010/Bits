@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 const Login: React.FC = () => {
   const [authMethod, setAuthMethod] = useState<'password' | 'magic_link'>('magic_link'); // Default to magic link for sign-in
 
+  // Determine the view for the Auth component
+  const currentView = authMethod === 'magic_link' ? 'magic_link' : 'sign_in';
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <Card className="w-full max-w-md bg-white dark:bg-gray-800 shadow-xl rounded-lg p-6">
@@ -43,8 +46,8 @@ const Login: React.FC = () => {
             providers={[]}
             theme="light"
             redirectTo={window.location.origin}
-            magicLink={authMethod === 'magic_link'} // This prop controls if magic link is an option
-            // Removed 'view' prop to allow Supabase Auth component to manage its own internal view transitions
+            magicLink={authMethod === 'magic_link'} // Magic link only for sign-in
+            view={currentView}
             localization={{
               variables: {
                 sign_in: {
