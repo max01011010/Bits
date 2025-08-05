@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } => 'react';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/integrations/supabase/client';
@@ -67,7 +67,7 @@ const Login: React.FC = () => {
                   password_input_placeholder: 'Create a password',
                   button_label: 'Sign Up',
                   social_provider_text: 'Sign up with {{provider}}',
-                  link_text: 'Already have an account? Sign In',
+                  link_text: '', // This line has been changed to remove the link
                   confirmation_text: 'Check your email for the magic link!',
                 },
                 forgotten_password: {
