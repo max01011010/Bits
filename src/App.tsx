@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import AchievementsPage from "./pages/AchievementsPage"; // Import AchievementsPage
 import { SessionContextProvider, useSession } from "./components/SessionContextProvider";
 import { MadeWithDyad } from "./components/made-with-dyad";
+import AppFooter from "./components/AppFooter"; // Import the new AppFooter
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,7 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
           <MadeWithDyad />
+          <AppFooter /> {/* Add the AppFooter here */}
         </SessionContextProvider>
       </BrowserRouter>
     </TooltipProvider>
