@@ -52,21 +52,26 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-50 dark:bg-gray-900 p-4 relative">
-      <div className="absolute top-4 right-4 flex space-x-2">
-        <Button
-          size="icon"
-          className="rounded-full w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
-          onClick={() => navigate('/add-habit')}
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
+      {/* Logout button remains in top right */}
+      <div className="absolute top-4 right-4">
         <Button
           size="icon"
           variant="outline"
-          className="rounded-full w-12 h-12 border-red-500 text-red-500 hover:bg-red-50 dark:border-red-400 dark:text-red-400 dark:hover:bg-gray-700"
+          className="rounded-full w-12 h-12 border-red-500 text-red-500 hover:bg-red-50 dark:border-red-400 dark:text-red-400 dark:hover:bg-gray-700 shadow-lg"
           onClick={handleLogout}
         >
           <LogOut className="h-6 w-6" />
+        </Button>
+      </div>
+
+      {/* Add button moved to bottom right */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <Button
+          size="icon"
+          className="rounded-full w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
+          onClick={() => navigate('/add-habit')}
+        >
+          <Plus className="h-7 w-7" />
         </Button>
       </div>
 
@@ -77,7 +82,7 @@ const Index = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl pb-20"> {/* Added padding-bottom to account for fixed button */}
         {habits.length === 0 ? (
           <p className="col-span-full text-center text-gray-500 dark:text-gray-400 text-lg">
             No habits yet. Click the '+' button to add your first habit!
@@ -88,8 +93,6 @@ const Index = () => {
           ))
         )}
       </div>
-
-      {/* MadeWithDyad is now in App.tsx for consistent display */}
     </div>
   );
 };
