@@ -18,9 +18,18 @@ interface Achievement {
   id: string;
   name: string;
   description: string;
-  icon: React.ElementType;
+  icon: React.ElementType; // This will be the actual React component for display
   isUnlocked: boolean;
-  trigger_condition?: string; // Optional for global achievements, but present for AI-generated
+  trigger_condition?: string;
+}
+
+// New interface for global achievement definitions to store icon_name as string
+interface GlobalAchievementDefinition {
+  id: string;
+  name: string;
+  description: string;
+  icon_name: string; // Store the string name here
+  trigger_condition?: string;
 }
 
 interface UserAchievementFromDB {
@@ -33,71 +42,71 @@ interface UserAchievementFromDB {
   is_unlocked: boolean;
   unlocked_at: string | null;
   created_at: string;
-  trigger_condition: string | null; // Added trigger_condition
+  trigger_condition: string | null;
 }
 
-const globalAchievements: Omit<Achievement, 'isUnlocked'>[] = [
+const globalAchievements: GlobalAchievementDefinition[] = [
   {
     id: 'habit-former',
     name: 'Habit Former',
     description: 'Complete your 1st Streak',
-    icon: LucideIcons['Trophy'] || Award,
+    icon_name: 'Trophy',
     trigger_condition: 'Complete your 1st streak for any habit',
   },
   {
     id: 'power-of-habit',
     name: 'Power of Habit',
     description: 'Completed your 1st milestone',
-    icon: LucideIcons['Sparkles'] || Sparkles,
+    icon_name: 'Sparkles',
     trigger_condition: 'Complete your 1st milestone for any habit',
   },
   {
     id: 'atomic-habit',
     name: 'Atomic Habit',
     description: 'Completed your 1st Goal (all milestones for a habit)',
-    icon: LucideIcons['Target'] || Target,
+    icon_name: 'Target',
     trigger_condition: 'Complete all milestones for any habit',
   },
   {
     id: 'repeat-champion',
     name: 'Repeat Champion',
     description: 'Started a habit again (completed its first cycle)',
-    icon: LucideIcons['Repeat'] || Award,
+    icon_name: 'Repeat',
     trigger_condition: 'Complete the first cycle of any habit',
   },
   {
     id: 'consistency-is-key',
     name: 'Consistency is Key',
     description: 'Completed a habit to its set repeat limit',
-    icon: LucideIcons['CheckCircle2'] || Award,
+    icon_name: 'CheckCircle2',
     trigger_condition: 'Complete a duration-based habit',
   },
   {
     id: 'committed',
     name: 'Committed',
     description: 'Completed a habit for 3 repeats',
-    icon: LucideIcons['Medal'] || Award,
+    icon_name: 'Medal',
     trigger_condition: 'Complete 3 cycles of any habit',
   },
   {
     id: 'practitioner',
     name: 'Practitioner',
     description: 'Completed a habit for 6 repeats',
-    icon: LucideIcons['Ribbon'] || Award,
+    icon_name: 'Ribbon',
     trigger_condition: 'Complete 6 cycles of any habit',
   },
   {
     id: 'creature-of-habit',
     name: 'Creature of Habit',
     description: 'Completed a habit set to repeat forever for 2 months',
-    icon: LucideIcons['Leaf'] || Award,
+    icon_name: 'Leaf',
     trigger_condition: 'Maintain a forever habit for 2 months',
   },
   {
     id: 'devotee',
     name: 'Devotee',
     description: 'Completed a habit set to repeat forever for 6 months',
-    icon: LucideIcons['Crown'] || Award,
+    icon_name: 'Crown',
     trigger_condition: 'Maintain a forever habit for 6 months',
   },
 ];
@@ -152,7 +161,8 @@ const AchievementsPage: React.FC = () => {
   useEffect(() => {
     if (!isLoadingData && user) {
       const combinedAchievements: Achievement[] = [];
-      const achievementsToInsert: Omit<UserAchievementFromDB, 'id' | 'created_at' | 'unlocked_at'>[] = [];
+      // Corrected type: 'unlocked_at' is now allowed as it's set by client
+      const achievementsToInsert: Omit<UserAchievementFromDB, 'id' | 'created_at'>[] = [];
 
       // Create a set of global achievement names for quick lookup
       const globalAchievementNames = new Set(globalAchievements.map(ga => ga.name));
@@ -194,7 +204,11 @@ const AchievementsPage: React.FC = () => {
           }
         }
 
-        combinedAchievements.push({ ...achievement, isUnlocked });
+        combinedAchievements.push({ 
+          ...achievement, 
+          icon: LucideIcons[achievement.icon_name] || Award, // Get component from string name
+          isUnlocked 
+        });
 
         // If newly unlocked (not in DB yet), add to batch for insertion
         if (isUnlocked && !alreadyUnlockedInDb) {
@@ -203,7 +217,7 @@ const AchievementsPage: React.FC = () => {
             habit_id: null, // Universal achievement
             name: achievement.name,
             description: achievement.description,
-            icon_name: achievement.icon.displayName || achievement.icon.name || 'Award',
+            icon_name: achievement.icon_name, // Use the stored string name
             is_unlocked: true,
             unlocked_at: new Date().toISOString(),
             trigger_condition: achievement.trigger_condition || null,

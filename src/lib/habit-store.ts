@@ -178,7 +178,7 @@ export const markHabitCompleted = async (habitId: string, userId: string): Promi
     return milestone;
   });
 
-  let newIsActive = habit.is_active;
+  let newIsActive: boolean = habit.is_active; // Explicitly type as boolean
   let newCompletionCount = habit.completion_count;
   let newStartDate = habit.start_date; // Keep original start date unless reset
 
