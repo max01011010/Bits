@@ -26,14 +26,14 @@ const Login: React.FC = () => {
           <div className="flex justify-center space-x-4 mb-6">
             <Button
               variant={authMethod === 'magic_link' ? 'default' : 'outline'}
-              onClick={()={() => setAuthMethod('magic_link')}}
+              onClick={() => setAuthMethod('magic_link')}
               className="w-1/2"
             >
               Magic Link
             </Button>
             <Button
               variant={authMethod === 'password' ? 'default' : 'outline'}
-              onClick={()={() => setAuthMethod('password')}}
+              onClick={() => setAuthMethod('password')}
               className="w-1/2"
             >
               Password
