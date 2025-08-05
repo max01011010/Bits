@@ -14,7 +14,7 @@ import { useSession } from '@/components/SessionContextProvider';
 interface GeneratedAchievement {
   name: string;
   description: string;
-  icon_category: string; // Changed from icon_name to icon_category
+  lucide_icon_name: string; // Changed from icon_category to lucide_icon_name
 }
 
 const AddHabitPage: React.FC = () => {
@@ -81,7 +81,7 @@ const AddHabitPage: React.FC = () => {
           habit_id: addedHabit.id, // Link achievement to the newly created habit
           name: ach.name,
           description: ach.description,
-          icon_name: ach.icon_category, // Use icon_category for the icon_name field in DB
+          icon_name: ach.lucide_icon_name, // Use lucide_icon_name for the icon_name field in DB
           is_unlocked: false,
           unlocked_at: null,
         }));
@@ -156,7 +156,7 @@ const AddHabitPage: React.FC = () => {
                     <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
                       {aiAchievements.map((ach, index) => (
                         <li key={index}>
-                          <span className="font-medium">{ach.name}:</span> {ach.description} (Category: {ach.icon_category})
+                          <span className="font-medium">{ach.name}:</span> {ach.description} (Icon: {ach.lucide_icon_name})
                         </li>
                       ))}
                     </ul>

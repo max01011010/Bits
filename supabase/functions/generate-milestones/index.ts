@@ -31,13 +31,13 @@ serve(async (req) => {
       });
     }
 
-    // Updated prompt to request both milestones and achievements with a curated list of valid Lucide icon categories
+    // Updated prompt to request both milestones and achievements with a curated list of valid Lucide icon names (PascalCase)
     const promptContent = `Generate 3-4 incremental milestones and 2-3 custom achievements for the goal: "${endGoal}".
     Each milestone should have a "goal" (string, e.g., "Walk 1000 steps") and "targetDays" (number, e.g., 3).
-    Each achievement should have a "name" (string), "description" (string), and an "icon_category" (string, a general category for the icon from this list: 'trophy', 'star', 'check', 'footsteps', 'book', 'dumbbell', 'heart', 'brain', 'mountain', 'sun', 'coffee', 'pizza', 'bike', 'run', 'walk').
+    Each achievement should have a "name" (string), "description" (string), and a "lucide_icon_name" (string, a valid Lucide icon component name from this exact list: 'Trophy', 'Star', 'CheckCircle2', 'Footprints', 'BookOpen', 'Dumbbell', 'Heart', 'Brain', 'Mountain', 'Sun', 'Coffee', 'Pizza', 'Bike', 'Award', 'Sparkles', 'Target', 'Medal', 'Ribbon', 'Gem', 'Crown', 'Feather', 'Zap', 'Flame', 'Leaf', 'Clock').
     Return only a JSON object with two keys: "milestones" (array of milestone objects) and "achievements" (array of achievement objects).
     Do not include any other text or formatting.
-    Example: {"milestones": [{"goal": "Start with 1000 steps", "targetDays": 3}], "achievements": [{"name": "First Step", "description": "Completed your first step", "icon_category": "footsteps"}]}`;
+    Example: {"milestones": [{"goal": "Start with 1000 steps", "targetDays": 3}], "achievements": [{"name": "First Step", "description": "Completed your first step", "lucide_icon_name": "Footprints"}]}`;
 
     const response = await fetch(HF_API_URL, {
       headers: {
@@ -96,8 +96,8 @@ serve(async (req) => {
       }
 
       // Validate achievements
-      if (!parsedResponse.achievements.every((a: any) => typeof a.name === 'string' && typeof a.description === 'string' && typeof a.icon_category === 'string')) {
-        throw new Error("Invalid AI response format for achievements: Expected objects with 'name' (string), 'description' (string), and 'icon_category' (string).");
+      if (!parsedResponse.achievements.every((a: any) => typeof a.name === 'string' && typeof a.description === 'string' && typeof a.lucide_icon_name === 'string')) {
+        throw new Error("Invalid AI response format for achievements: Expected objects with 'name' (string), 'description' (string), and 'lucide_icon_name' (string).");
       }
 
     } catch (parseError) {
@@ -118,7 +118,7 @@ serve(async (req) => {
     const formattedAchievements = parsedResponse.achievements.map((a: any) => ({
       name: a.name,
       description: a.description,
-      icon_category: a.icon_category, // Changed to icon_category
+      icon_name: a.lucide_icon_name, // Now directly using lucide_icon_name
       is_unlocked: false, // Initially unlocked
       unlocked_at: null,
     }));
