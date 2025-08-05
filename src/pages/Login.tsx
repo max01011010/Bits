@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,12 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 
 const Login: React.FC = () => {
-  const [authMethod, setAuthMethod] = useState<'password' | 'magic_link'>('magic_link'); // Default to magic link for sign-in
+  // This state controls which top button is active and the initial view of Auth component
+  const [authMethod, setAuthMethod] = useState<'password' | 'magic_link'>('magic_link');
 
-  // Determine the view for the Auth component
-  // This state is now primarily for controlling the top buttons,
-  // allowing the Auth component to manage its internal view changes.
-  const currentView = authMethod === 'magic_link' ? 'magic_link' : 'sign_in';
+  // This state will track the actual view of the Supabase Auth component
+  const [authView, setAuthView] = useState<'sign_in' | 'sign_up' | 'forgotten_password' | 'update_password' | 'magic_link'>(
+    authMethod === 'magic_link' ? 'magic_link' : 'sign_in'
+  );
+
+  // Update authView when authMethod changes from the top buttons
+  useEffect(() => {
+    setAuthView(authMethod === 'magic_link' ? 'magic_link' : 'sign_in');
+  }, [authMethod]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
@@ -48,8 +54,9 @@ const Login: React.FC = () => {
             providers={[]}
             theme="light"
             redirectTo={window.location.origin}
-            magicLink={true} // Keep magic link enabled for sign-in
-            // Removed view={currentView} to allow Auth component to manage its own internal view changes
+            magicLink={true}
+            view={authView} // Control the view based on our state
+            onViewChange={setAuthView} // Allow Auth component to update our state
             localization={{
               variables: {
                 sign_in: {
@@ -67,9 +74,9 @@ const Login: React.FC = () => {
                   password_label: 'Create a password',
                   email_input_placeholder: 'Your email address',
                   password_input_placeholder: 'Create a password',
-                  button_label: 'Sign Up', // This is already 'Sign Up'
+                  button_label: 'Sign Up',
                   social_provider_text: 'Sign up with {{provider}}',
-                  link_text: '', // This line has been changed to remove the link
+                  link_text: '',
                   confirmation_text: 'Check your email for the magic link!',
                 },
                 forgotten_password: {
