@@ -46,7 +46,7 @@ const Login: React.FC = () => {
             providers={[]}
             theme="light"
             redirectTo={window.location.origin}
-            magicLink={authMethod === 'magic_link'} // Magic link only for sign-in
+            magicLink={true} // Changed to true to re-enable the magic link option
             view={currentView}
             localization={{
               variables: {
