@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 const Login: React.FC = () => {
   // This state directly controls the 'view' prop of the Auth component.
   // It can be 'sign_in', 'sign_up', 'magic_link', 'forgotten_password', or 'update_password'.
-  const [currentAuthView, setCurrentAuthView] = useState<'sign_in' | 'sign_up' | 'magic_link' | 'forgotten_password' | 'update_password'>('sign_in'); // Corrected initial state to 'sign_in'
+  const [currentAuthView, setCurrentAuthView] = useState<'sign_in' | 'sign_up' | 'magic_link' | 'forgotten_password' | 'update_password'>('sign_in');
 
   // Function to handle top button clicks
   const handleAuthMethodChange = (method: 'password' | 'magic_link') => {
@@ -66,7 +66,7 @@ const Login: React.FC = () => {
                   password_input_placeholder: 'Your password',
                   button_label: 'Sign In',
                   social_provider_text: 'Sign in with {{provider}}',
-                  link_text: 'Don\'t have an account? Sign Up', // This link should trigger onViewChange to 'sign_up'
+                  link_text: '', // Hide default link
                   confirmation_text: 'Check your email for the magic link!',
                 },
                 sign_up: {
@@ -74,16 +74,16 @@ const Login: React.FC = () => {
                   password_label: 'Create a password',
                   email_input_placeholder: 'Your email address',
                   password_input_placeholder: 'Create a password',
-                  button_label: 'Sign Up', // This is the target button text
+                  button_label: 'Sign Up',
                   social_provider_text: 'Sign up with {{provider}}',
-                  link_text: '', // Removed this link as requested
+                  link_text: '', // Hide default link
                   confirmation_text: 'Check your email for the magic link!',
                 },
                 forgotten_password: {
                   email_label: 'Email address',
                   email_input_placeholder: 'Your email address',
                   button_label: 'Send reset password instructions',
-                  link_text: 'Forgot your password?',
+                  link_text: '', // Hide default link
                   confirmation_text: 'Check your email for the password reset link!',
                 },
                 update_password: {
@@ -95,12 +95,46 @@ const Login: React.FC = () => {
                 magic_link: {
                   email_input_placeholder: 'Your email address',
                   button_label: 'Send Magic Link',
-                  link_text: 'Send a magic link',
+                  link_text: '', // Hide default link
                   confirmation_text: 'Check your email for the magic link!',
                 },
               },
             }}
           />
+
+          {/* Custom navigation buttons */}
+          {currentAuthView === 'sign_in' && (
+            <div className="mt-4 text-center">
+              <Button variant="link" onClick={() => setCurrentAuthView('forgotten_password')} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                Forgot your password?
+              </Button>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                Don't have an account?{' '}
+                <Button variant="link" onClick={() => setCurrentAuthView('sign_up')} className="p-0 h-auto text-blue-600 dark:text-blue-400 hover:underline">
+                  Sign Up
+                </Button>
+              </p>
+            </div>
+          )}
+
+          {currentAuthView === 'sign_up' && (
+            <div className="mt-4 text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Already have an account?{' '}
+                <Button variant="link" onClick={() => setCurrentAuthView('sign_in')} className="p-0 h-auto text-blue-600 dark:text-blue-400 hover:underline">
+                  Sign In
+                </Button>
+              </p>
+            </div>
+          )}
+
+          {currentAuthView === 'forgotten_password' && (
+            <div className="mt-4 text-center">
+              <Button variant="link" onClick={() => setCurrentAuthView('sign_in')} className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                Back to Sign In
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
