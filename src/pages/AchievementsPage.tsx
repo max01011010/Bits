@@ -154,14 +154,19 @@ const AchievementsPage: React.FC = () => {
       const combinedAchievements: Achievement[] = [];
       const achievementsToInsert: Omit<UserAchievementFromDB, 'id' | 'created_at' | 'unlocked_at'>[] = [];
 
-      // Evaluate global achievements
+      // Create a set of global achievement names for quick lookup
+      const globalAchievementNames = new Set(globalAchievements.map(ga => ga.name));
+
+      // Evaluate global achievements and add them to combinedAchievements
       globalAchievements.forEach(achievement => {
         let isUnlocked = false;
-        const alreadyUnlocked = userAchievements.some(ua => ua.name === achievement.name && ua.is_unlocked);
+        // Check if this global achievement is already in the user's saved achievements from DB
+        const alreadyUnlockedInDb = userAchievements.some(ua => ua.name === achievement.name && ua.is_unlocked);
 
-        if (alreadyUnlocked) {
+        if (alreadyUnlockedInDb) {
           isUnlocked = true;
         } else {
+          // Evaluate unlocking conditions for global achievements
           if (achievement.id === 'habit-former') {
             isUnlocked = userHabits.some(h => h.current_streak > 0);
           } else if (achievement.id === 'power-of-habit') {
@@ -191,14 +196,14 @@ const AchievementsPage: React.FC = () => {
 
         combinedAchievements.push({ ...achievement, isUnlocked });
 
-        // If unlocked and not already in DB, add to batch for insertion
-        if (isUnlocked && !alreadyUnlocked) {
+        // If newly unlocked (not in DB yet), add to batch for insertion
+        if (isUnlocked && !alreadyUnlockedInDb) {
           achievementsToInsert.push({
             user_id: user.id,
             habit_id: null, // Universal achievement
             name: achievement.name,
             description: achievement.description,
-            icon_name: achievement.icon.displayName || achievement.icon.name || 'Award', // Get icon name string
+            icon_name: achievement.icon.displayName || achievement.icon.name || 'Award',
             is_unlocked: true,
             unlocked_at: new Date().toISOString(),
             trigger_condition: achievement.trigger_condition || null,
@@ -206,17 +211,20 @@ const AchievementsPage: React.FC = () => {
         }
       });
 
-      // Add user-specific achievements (AI-generated)
+      // Add user-specific achievements (AI-generated) that are NOT global achievements
       userAchievements.forEach(userAch => {
-        const IconComponent = LucideIcons[userAch.icon_name] || Award;
-        combinedAchievements.push({
-          id: userAch.id,
-          name: userAch.name,
-          description: userAch.description,
-          icon: IconComponent,
-          isUnlocked: userAch.is_unlocked,
-          trigger_condition: userAch.trigger_condition || undefined,
-        });
+        // Only add if it's not a global achievement (to avoid duplication)
+        if (!globalAchievementNames.has(userAch.name)) {
+          const IconComponent = LucideIcons[userAch.icon_name] || Award;
+          combinedAchievements.push({
+            id: userAch.id,
+            name: userAch.name,
+            description: userAch.description,
+            icon: IconComponent,
+            isUnlocked: userAch.is_unlocked,
+            trigger_condition: userAch.trigger_condition || undefined,
+          });
+        }
       });
 
       setDisplayedAchievements(combinedAchievements);
@@ -232,14 +240,14 @@ const AchievementsPage: React.FC = () => {
             console.error('Error inserting new universal achievements:', insertError);
             toast.error('Failed to save some new achievements.');
           } else {
-            toast.success(`New achievement unlocked!`); // Consider more specific toast
+            toast.success(`New achievement unlocked!`);
             loadData(); // Re-fetch data to update state with newly inserted achievements
           }
         };
         insertAchievements();
       }
     }
-  }, [userHabits, userAchievements, isLoadingData, user, loadData]); // Added loadData to dependencies
+  }, [userHabits, userAchievements, isLoadingData, user, loadData]);
 
   if (isSessionLoading || isLoadingData) {
     return (
