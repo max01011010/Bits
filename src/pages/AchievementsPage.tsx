@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ArrowLeft, Award, Sparkles, Target, Footprints, Star, Check, Trophy, Medal, Ribbon, Gem, Crown, Feather, Zap, Flame, Leaf, Heart, Brain, Dumbbell, BookOpen, Clock, Mountain, Sun, Moon, Cloud, Droplet, Coffee, Pizza, Bike, Run, Walk, Smile, Laugh, Happy, Sad, Angry, Meh } from 'lucide-react';
+import { ArrowLeft, Award, Sparkles, Target, Footprints, Star, Check, Trophy, Medal, Ribbon, Gem, Crown, Feather, Zap, Flame, Leaf, Heart, Brain, Dumbbell, BookOpen, Clock, Mountain, Sun, Moon, Cloud, Droplet, Coffee, Pizza, Bike, Run, Walk } from 'lucide-react';
 import { useSession } from '@/components/SessionContextProvider';
 import { getHabits, Habit } from '@/lib/habit-store';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 
 // Map Lucide icon names to components
 const LucideIcons: { [key: string]: React.ElementType } = {
-  Award, Sparkles, Target, Footprints, Star, Check, Trophy, Medal, Ribbon, Gem, Crown, Feather, Zap, Flame, Leaf, Heart, Brain, Dumbbell, BookOpen, Clock, Mountain, Sun, Moon, Cloud, Droplet, Coffee, Pizza, Bike, Run, Walk, Smile, Laugh, Happy, Sad, Angry, Meh
+  Award, Sparkles, Target, Footprints, Star, Check, Trophy, Medal, Ribbon, Gem, Crown, Feather, Zap, Flame, Leaf, Heart, Brain, Dumbbell, BookOpen, Clock, Mountain, Sun, Moon, Cloud, Droplet, Coffee, Pizza, Bike, Run, Walk
 };
 
 interface Achievement {

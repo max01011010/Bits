@@ -34,7 +34,7 @@ serve(async (req) => {
     // Updated prompt to request both milestones and achievements with a curated list of valid Lucide icon names
     const promptContent = `Generate 3-4 incremental milestones and 2-3 custom achievements for the goal: "${endGoal}".
     Each milestone should have a "goal" (string, e.g., "Walk 1000 steps") and "targetDays" (number, e.g., 3).
-    Each achievement should have a "name" (string), "description" (string), and a "lucide_icon_name" (string, a valid Lucide icon name from this list: 'Award', 'Sparkles', 'Target', 'Star', 'Check', 'Trophy', 'Medal', 'Ribbon', 'Gem', 'Crown', 'Feather', 'Zap', 'Flame', 'Leaf', 'Heart', 'Brain', 'Dumbbell', 'BookOpen', 'Clock', 'Mountain', 'Sun', 'Moon', 'Cloud', 'Droplet', 'Coffee', 'Pizza', 'Bike', 'Run', 'Walk', 'Smile', 'Laugh', 'Happy', 'Sad', 'Angry', 'Meh', 'Footprints').
+    Each achievement should have a "name" (string), "description" (string), and a "lucide_icon_name" (string, a valid Lucide icon name from this list: 'Award', 'Sparkles', 'Target', 'Star', 'Check', 'Trophy', 'Medal', 'Ribbon', 'Gem', 'Crown', 'Feather', 'Zap', 'Flame', 'Leaf', 'Heart', 'Brain', 'Dumbbell', 'BookOpen', 'Clock', 'Mountain', 'Sun', 'Moon', 'Cloud', 'Droplet', 'Coffee', 'Pizza', 'Bike', 'Run', 'Walk', 'Footprints').
     Return only a JSON object with two keys: "milestones" (array of milestone objects) and "achievements" (array of achievement objects).
     Do not include any other text or formatting.
     Example: {"milestones": [{"goal": "Start with 1000 steps", "targetDays": 3}], "achievements": [{"name": "First Step", "description": "Completed your first step", "lucide_icon_name": "Footprints"}]}`;
