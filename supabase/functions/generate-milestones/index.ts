@@ -36,8 +36,8 @@ serve(async (req) => {
       });
     }
 
-    // Updated prompt with more specific instructions for milestones and targetDays
-    const promptContent = `Generate 3-4 incremental, small, and achievable milestones, and 2-3 custom achievements for the goal: "${endGoal}".
+    // Updated prompt to request up to 12 milestones
+    const promptContent = `Generate 8-12 incremental, small, and achievable milestones, and 2-3 custom achievements for the goal: "${endGoal}".
 Each milestone should represent a daily actionable step towards the goal. The "targetDays" for each milestone should be a number between 3 and 15, indicating how many *daily completions* of that specific action are needed to complete the milestone.
 For example, if the end goal is "Create an app every month for a year", the milestones should be daily actions like:
 - "Spend 1 hour coding daily" (targetDays: 7)

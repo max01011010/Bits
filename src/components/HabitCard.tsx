@@ -54,14 +54,19 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onHabitUpdate }) => {
     }
   };
 
-  const currentMilestone = habit.milestones.find(m => !m.isCompleted);
-  const nextMilestoneIndex = habit.milestones.findIndex(m => !m.isCompleted);
+  const firstUncompletedMilestoneIndex = habit.milestones.findIndex(m => !m.isCompleted);
+  const currentMilestone = firstUncompletedMilestoneIndex !== -1 ? habit.milestones[firstUncompletedMilestoneIndex] : null;
+
+  // Determine which milestones to display (next 4 uncompleted ones)
+  const milestonesToDisplay = habit.milestones.slice(firstUncompletedMilestoneIndex !== -1 ? firstUncompletedMilestoneIndex : habit.milestones.length)
+                                              .filter(m => !m.isCompleted) // Ensure only uncompleted are considered for the "next 4"
+                                              .slice(0, 4);
 
   React.useEffect(() => {
     const checkAndCompleteMilestone = async () => {
       if (currentMilestone && currentMilestone.completedDays >= currentMilestone.targetDays) {
         const updatedMilestones = habit.milestones.map((m, index) =>
-          index === nextMilestoneIndex ? { ...m, isCompleted: true } : m
+          index === firstUncompletedMilestoneIndex ? { ...m, isCompleted: true } : m
         );
         const updatedHabitData = { ...habit, milestones: updatedMilestones };
         const success = await updateHabit(updatedHabitData);
@@ -72,7 +77,7 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onHabitUpdate }) => {
       }
     };
     checkAndCompleteMilestone();
-  }, [currentMilestone, habit, nextMilestoneIndex, onHabitUpdate]);
+  }, [currentMilestone, habit, firstUncompletedMilestoneIndex, onHabitUpdate]);
 
   const today = new Date().toISOString().split('T')[0];
   const isCompletedToday = habit.last_completed_date === today; // Use last_completed_date
