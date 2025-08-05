@@ -2,15 +2,44 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ArrowLeft, Award, Sparkles, Target, Footprints, Star, Check, Trophy, Medal, Ribbon, Gem, Crown, Feather, Zap, Flame, Leaf, Heart, Brain, Dumbbell, BookOpen, Clock, Mountain, Sun, Moon, Cloud, Droplet, Coffee, Pizza, Bike, Run, Walk } from 'lucide-react';
+import { ArrowLeft, Award, Sparkles, Target, Footprints, Star, Check, Trophy, Medal, Ribbon, Gem, Crown, Feather, Zap, Flame, Leaf, Heart, Brain, Dumbbell, BookOpen, Clock, Mountain, Sun, Coffee, Pizza, Bike, Run, Walk } from 'lucide-react';
 import { useSession } from '@/components/SessionContextProvider';
 import { getHabits, Habit } from '@/lib/habit-store';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-// Map Lucide icon names to components
-const LucideIcons: { [key: string]: React.ElementType } = {
-  Award, Sparkles, Target, Footprints, Star, Check, Trophy, Medal, Ribbon, Gem, Crown, Feather, Zap, Flame, Leaf, Heart, Brain, Dumbbell, BookOpen, Clock, Mountain, Sun, Moon, Cloud, Droplet, Coffee, Pizza, Bike, Run, Walk
+// Map icon categories to Lucide icon components
+const IconCategoryMap: { [key: string]: React.ElementType } = {
+  'trophy': Trophy,
+  'star': Star,
+  'check': Check,
+  'footsteps': Footprints,
+  'book': BookOpen,
+  'dumbbell': Dumbbell,
+  'heart': Heart,
+  'brain': Brain,
+  'mountain': Mountain,
+  'sun': Sun,
+  'coffee': Coffee,
+  'pizza': Pizza,
+  'bike': Bike,
+  'run': Run,
+  'walk': Walk,
+  // Fallback for general categories or if AI generates something unexpected
+  'award': Award,
+  'sparkles': Sparkles,
+  'target': Target,
+  'medal': Medal,
+  'ribbon': Ribbon,
+  'gem': Gem,
+  'crown': Crown,
+  'feather': Feather,
+  'zap': Zap,
+  'flame': Flame,
+  'leaf': Leaf,
+  'clock': Clock,
+  // Default fallback if category is not found
+  'default': Award, 
 };
 
 interface Achievement {
@@ -27,7 +56,7 @@ interface UserAchievementFromDB {
   habit_id: string | null;
   name: string;
   description: string;
-  icon_name: string;
+  icon_name: string; // This now stores the icon_category
   is_unlocked: boolean;
   unlocked_at: string | null;
   created_at: string;
@@ -38,19 +67,19 @@ const globalAchievements: Omit<Achievement, 'isUnlocked'>[] = [
     id: 'habit-former',
     name: 'Habit Former',
     description: 'Complete your 1st Streak',
-    icon: Award,
+    icon: IconCategoryMap['trophy'] || Award,
   },
   {
     id: 'power-of-habit',
     name: 'Power of Habit',
     description: 'Completed your 1st milestone',
-    icon: Sparkles,
+    icon: IconCategoryMap['sparkles'] || Sparkles,
   },
   {
     id: 'atomic-habit',
     name: 'Atomic Habit',
     description: 'Completed your 1st Goal (all milestones for a habit)',
-    icon: Target,
+    icon: IconCategoryMap['target'] || Target,
   },
 ];
 
@@ -120,7 +149,8 @@ const AchievementsPage: React.FC = () => {
 
       // Add user-specific achievements
       userAchievements.forEach(userAch => {
-        const IconComponent = LucideIcons[userAch.icon_name] || Award; // Fallback to Award if icon not found
+        // Use the new mapping for icon categories
+        const IconComponent = IconCategoryMap[userAch.icon_name] || IconCategoryMap['default']; 
         combinedAchievements.push({
           id: userAch.id,
           name: userAch.name,
