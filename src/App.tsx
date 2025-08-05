@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Index from './pages/Index';
 import AddHabitPage from './pages/AddHabitPage';
-import HabitDetailsPage from './pages/HabitDetailsPage';
 import { Toaster } from "@/components/ui/sonner";
 import { SessionContextProvider } from './components/SessionContextProvider';
 import Login from './pages/Login';
@@ -15,7 +14,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/add-habit" element={<AddHabitPage />} />
-          <Route path="/habit/:id" element={<HabitDetailsPage />} />
+          {/* <Route path="/habit/:id" element={<HabitDetailsPage />} /> */}
           <Route path="/login" element={<Login />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/achievements" element={<AchievementsPage />} />
