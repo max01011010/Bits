@@ -172,6 +172,18 @@ const AddHabitPage: React.FC = () => {
               </div>
             )}
           </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-6 text-center">
+            AI generation powered by CohereLabs/aya-expanse-8b:cohere, licensed under{' '}
+            <a
+              href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-gray-700 dark:hover:text-gray-300"
+            >
+              CC BY-NC-SA 4.0
+            </a>
+            .
+          </p>
         </CardContent>
       </Card>
     </div>
