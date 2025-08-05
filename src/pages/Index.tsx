@@ -7,6 +7,7 @@ import HabitCard from '@/components/HabitCard';
 import { useSession } from '@/components/SessionContextProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import WalkthroughModal from '@/components/WalkthroughModal'; // Import the new WalkthroughModal
 
 const Index = () => {
   const navigate = useNavigate();
@@ -93,6 +94,9 @@ const Index = () => {
           Track your progress and build new routines!
         </p>
       </div>
+
+      {/* "How does this work?" link */}
+      <WalkthroughModal />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl pb-20">
         {habits.length === 0 ? (
