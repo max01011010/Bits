@@ -13,6 +13,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"; // Import AlertDialog components
 import { useSession } from '@/components/SessionContextProvider'; // Import useSession
 
 interface HabitCardProps {
@@ -74,9 +85,28 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onHabitUpdate }) => {
     <Card className="w-full max-w-sm bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">{habit.name}</CardTitle>
-        <Button variant="ghost" size="icon" onClick={handleDelete} className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
-          <Trash2 className="h-5 w-5" />
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+              <Trash2 className="h-5 w-5" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100">
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete your habit
+                "{habit.name}" and all its associated data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700">Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white dark:bg-red-500 dark:hover:bg-red-600">
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardHeader>
       <CardContent className="p-4 pt-0">
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
