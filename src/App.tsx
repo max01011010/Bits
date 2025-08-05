@@ -8,8 +8,8 @@ import AchievementsPage from './pages/AchievementsPage';
 
 function App() {
   return (
-    <SessionContextProvider>
-      <Router>
+    <Router>
+      <SessionContextProvider>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/add-habit" element={<AddHabitPage />} />
@@ -34,8 +34,8 @@ function App() {
             .
           </p>
         </footer>
-      </Router>
-    </SessionContextProvider>
+      </SessionContextProvider>
+    </Router>
   );
 }
 
