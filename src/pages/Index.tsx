@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
-import { Plus, LogOut } from 'lucide-react';
+import { Plus, LogOut, Trophy } from 'lucide-react'; // Import Trophy icon
 import { useNavigate } from 'react-router-dom';
 import { getHabits, Habit } from '@/lib/habit-store';
 import HabitCard from '@/components/HabitCard';
-import { useSession } from '@/components/SessionContextProvider'; // Import useSession
-import { supabase } from '@/integrations/supabase/client'; // Import supabase client
+import { useSession } from '@/components/SessionContextProvider';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { user, isLoading } = useSession(); // Get user and loading state from session context
+  const { user, isLoading } = useSession();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [isHabitsLoading, setIsHabitsLoading] = useState(true);
 
@@ -27,7 +27,7 @@ const Index = () => {
   }, [user]);
 
   useEffect(() => {
-    if (!isLoading) { // Only load habits once session loading is complete
+    if (!isLoading) {
       loadHabits();
     }
   }, [isLoading, loadHabits]);
@@ -64,6 +64,18 @@ const Index = () => {
         </Button>
       </div>
 
+      {/* Achievements button in top left */}
+      <div className="absolute top-4 left-4">
+        <Button
+          size="icon"
+          variant="outline"
+          className="rounded-full w-12 h-12 border-blue-500 text-blue-500 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-gray-700 shadow-lg"
+          onClick={() => navigate('/achievements')}
+        >
+          <Trophy className="h-6 w-6" />
+        </Button>
+      </div>
+
       {/* Add button moved to bottom right */}
       <div className="fixed bottom-4 right-4 z-50">
         <Button
@@ -82,7 +94,7 @@ const Index = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl pb-20"> {/* Added padding-bottom to account for fixed button */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-6xl pb-20">
         {habits.length === 0 ? (
           <p className="col-span-full text-center text-gray-500 dark:text-gray-400 text-lg">
             No habits yet. Click the '+' button to add your first habit!

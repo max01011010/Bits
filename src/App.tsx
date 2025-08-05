@@ -6,9 +6,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AddHabitPage from "./pages/AddHabitPage";
-import Login from "./pages/Login"; // Import the Login page
-import { SessionContextProvider, useSession } from "./components/SessionContextProvider"; // Import SessionContextProvider and useSession
-import { MadeWithDyad } from "./components/made-with-dyad"; // Import MadeWithDyad
+import Login from "./pages/Login";
+import AchievementsPage from "./pages/AchievementsPage"; // Import AchievementsPage
+import { SessionContextProvider, useSession } from "./components/SessionContextProvider";
+import { MadeWithDyad } from "./components/made-with-dyad";
 
 const queryClient = new QueryClient();
 
@@ -57,10 +58,18 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/achievements" // New route for AchievementsPage
+              element={
+                <ProtectedRoute>
+                  <AchievementsPage />
+                </ProtectedRoute>
+              }
+            />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-          <MadeWithDyad /> {/* Place MadeWithDyad outside Routes for consistent display */}
+          <MadeWithDyad />
         </SessionContextProvider>
       </BrowserRouter>
     </TooltipProvider>
