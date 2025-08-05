@@ -4,7 +4,6 @@ import AddHabitPage from './pages/AddHabitPage';
 import { Toaster } from "@/components/ui/sonner";
 import { SessionContextProvider } from './components/SessionContextProvider';
 import Login from './pages/Login';
-import ProfilePage from './pages/ProfilePage';
 import AchievementsPage from './pages/AchievementsPage';
 
 function App() {
@@ -16,7 +15,7 @@ function App() {
           <Route path="/add-habit" element={<AddHabitPage />} />
           {/* <Route path="/habit/:id" element={<HabitDetailsPage />} /> */}
           <Route path="/login" element={<Login />} />
-          <Route path="/profile" element={<ProfilePage />} />
+          {/* <Route path="/profile" element={<ProfilePage />} /> */}
           <Route path="/achievements" element={<AchievementsPage />} />
         </Routes>
         <Toaster />
