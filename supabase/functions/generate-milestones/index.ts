@@ -6,6 +6,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Define the list of valid Lucide icon names as used in the prompt
+const VALID_LUCIDE_ICONS = [
+  'Trophy', 'Star', 'CheckCircle2', 'Footprints', 'BookOpen', 'Dumbbell', 'Heart', 'Brain', 'Mountain', 'Sun', 'Coffee', 'Pizza', 'Bike', 'Award', 'Sparkles', 'Target', 'Medal', 'Ribbon', 'Gem', 'Crown', 'Feather', 'Zap', 'Flame', 'Leaf', 'Clock'
+];
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -34,7 +39,7 @@ serve(async (req) => {
     // Updated prompt to request both milestones and achievements with a curated list of valid Lucide icon names (PascalCase)
     const promptContent = `Generate 3-4 incremental milestones and 2-3 custom achievements for the goal: "${endGoal}".
     Each milestone should have a "goal" (string, e.g., "Walk 1000 steps") and "targetDays" (number, e.g., 3).
-    Each achievement should have a "name" (string), "description" (string), and a "lucide_icon_name" (string, a valid Lucide icon component name from this exact list: 'Trophy', 'Star', 'CheckCircle2', 'Footprints', 'BookOpen', 'Dumbbell', 'Heart', 'Brain', 'Mountain', 'Sun', 'Coffee', 'Pizza', 'Bike', 'Award', 'Sparkles', 'Target', 'Medal', 'Ribbon', 'Gem', 'Crown', 'Feather', 'Zap', 'Flame', 'Leaf', 'Clock').
+    Each achievement should have a "name" (string), "description" (string), and a "lucide_icon_name" (string, a valid Lucide icon component name from this exact list: ${VALID_LUCIDE_ICONS.map(icon => `'${icon}'`).join(', ')}).
     Return only a JSON object with two keys: "milestones" (array of milestone objects) and "achievements" (array of achievement objects).
     Do not include any other text or formatting.
     Example: {"milestones": [{"goal": "Start with 1000 steps", "targetDays": 3}], "achievements": [{"name": "First Step", "description": "Completed your first step", "lucide_icon_name": "Footprints"}]}`;
@@ -115,13 +120,20 @@ serve(async (req) => {
       isCompleted: false,
     }));
 
-    const formattedAchievements = parsedResponse.achievements.map((a: any) => ({
-      name: a.name,
-      description: a.description,
-      icon_name: a.lucide_icon_name, // Now directly using lucide_icon_name
-      is_unlocked: false, // Initially unlocked
-      unlocked_at: null,
-    }));
+    const formattedAchievements = parsedResponse.achievements.map((a: any) => {
+      // Validate and fallback icon_name
+      const iconName = VALID_LUCIDE_ICONS.includes(a.lucide_icon_name)
+        ? a.lucide_icon_name
+        : 'Award'; // Default to 'Award' if AI provides an invalid or empty icon name
+
+      return {
+        name: a.name,
+        description: a.description,
+        icon_name: iconName,
+        is_unlocked: false, // Initially unlocked
+        unlocked_at: null,
+      };
+    });
 
     return new Response(JSON.stringify({ milestones: formattedMilestones, achievements: formattedAchievements }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
