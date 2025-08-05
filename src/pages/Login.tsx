@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 
 const Login: React.FC = () => {
-  const [isSignUp, setIsSignUp] = useState(false); // New state to differentiate sign-in/sign-up
+  const [isSignUp, setIsSignUp] = useState(false); // State to differentiate sign-in/sign-up
   const [authMethod, setAuthMethod] = useState<'password' | 'magic_link'>('magic_link'); // Default to magic link for sign-in
 
   // Determine the view for the Auth component
