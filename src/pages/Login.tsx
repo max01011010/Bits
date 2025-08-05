@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,18 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 
 const Login: React.FC = () => {
-  // This state controls which top button is active and the initial view of Auth component
-  const [authMethod, setAuthMethod] = useState<'password' | 'magic_link'>('magic_link');
+  // This state will directly control the 'view' prop of the Auth component.
+  // It can be 'sign_in', 'sign_up', or 'magic_link'.
+  const [currentAuthView, setCurrentAuthView] = useState<'sign_in' | 'sign_up' | 'magic_link' | 'forgotten_password' | 'update_password'>('magic_link');
 
-  // This state will track the actual view of the Supabase Auth component
-  const [authView, setAuthView] = useState<'sign_in' | 'sign_up' | 'forgotten_password' | 'update_password' | 'magic_link'>(
-    authMethod === 'magic_link' ? 'magic_link' : 'sign_in'
-  );
-
-  // Update authView when authMethod changes from the top buttons
-  useEffect(() => {
-    setAuthView(authMethod === 'magic_link' ? 'magic_link' : 'sign_in');
-  }, [authMethod]);
+  // Function to handle top button clicks
+  const handleAuthMethodChange = (method: 'password' | 'magic_link') => {
+    if (method === 'magic_link') {
+      setCurrentAuthView('magic_link');
+    } else {
+      setCurrentAuthView('sign_in'); // Default to sign_in when password method is chosen
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
@@ -33,15 +33,15 @@ const Login: React.FC = () => {
         <CardContent>
           <div className="flex justify-center space-x-4 mb-6">
             <Button
-              variant={authMethod === 'magic_link' ? 'default' : 'outline'}
-              onClick={() => setAuthMethod('magic_link')}
+              variant={currentAuthView === 'magic_link' ? 'default' : 'outline'}
+              onClick={() => handleAuthMethodChange('magic_link')}
               className="w-1/2"
             >
               Magic Link
             </Button>
             <Button
-              variant={authMethod === 'password' ? 'default' : 'outline'}
-              onClick={() => setAuthMethod('password')}
+              variant={currentAuthView === 'sign_in' || currentAuthView === 'sign_up' || currentAuthView === 'forgotten_password' || currentAuthView === 'update_password' ? 'default' : 'outline'}
+              onClick={() => handleAuthMethodChange('password')}
               className="w-1/2"
             >
               Password
@@ -54,9 +54,9 @@ const Login: React.FC = () => {
             providers={[]}
             theme="light"
             redirectTo={window.location.origin}
-            magicLink={true}
-            view={authView} // Control the view based on our state
-            onViewChange={setAuthView} // Allow Auth component to update our state
+            magicLink={true} // Keep magic link enabled for the Auth component to handle
+            view={currentAuthView} // Explicitly control the view
+            onViewChange={setCurrentAuthView} // Allow Auth component to update our state when internal links are clicked
             localization={{
               variables: {
                 sign_in: {
@@ -66,7 +66,7 @@ const Login: React.FC = () => {
                   password_input_placeholder: 'Your password',
                   button_label: 'Sign In',
                   social_provider_text: 'Sign in with {{provider}}',
-                  link_text: 'Don\'t have an account? Sign Up',
+                  link_text: 'Don\'t have an account? Sign Up', // This link should trigger onViewChange to 'sign_up'
                   confirmation_text: 'Check your email for the magic link!',
                 },
                 sign_up: {
@@ -74,14 +74,13 @@ const Login: React.FC = () => {
                   password_label: 'Create a password',
                   email_input_placeholder: 'Your email address',
                   password_input_placeholder: 'Create a password',
-                  button_label: 'Sign Up',
+                  button_label: 'Sign Up', // This is the target button text
                   social_provider_text: 'Sign up with {{provider}}',
-                  link_text: '',
+                  link_text: 'Already have an account? Sign In', // This link should trigger onViewChange to 'sign_in'
                   confirmation_text: 'Check your email for the magic link!',
                 },
                 forgotten_password: {
                   email_label: 'Email address',
-                  password_label: 'Your password',
                   email_input_placeholder: 'Your email address',
                   button_label: 'Send reset password instructions',
                   link_text: 'Forgot your password?',
