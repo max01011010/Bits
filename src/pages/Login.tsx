@@ -6,62 +6,34 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 
 const Login: React.FC = () => {
-  const [isSignUp, setIsSignUp] = useState(false); // New state to differentiate sign-in/sign-up
   const [authMethod, setAuthMethod] = useState<'password' | 'magic_link'>('magic_link'); // Default to magic link for sign-in
-
-  // Determine the view for the Auth component
-  const currentView = isSignUp ? 'sign_up' : (authMethod === 'magic_link' ? 'magic_link' : 'sign_in');
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <Card className="w-full max-w-md bg-white dark:bg-gray-800 shadow-xl rounded-lg p-6">
         <CardHeader className="text-center mb-6">
-          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            {isSignUp ? "Create Your Account" : "Welcome Back!"}
-          </CardTitle>
+          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-gray-100">Welcome Back!</CardTitle>
           <CardDescription className="text-gray-600 dark:text-gray-400">
-            {isSignUp ? "Join us to start tracking your habits." : "Sign in to manage your habits."}
+            Sign in or create an account to manage your habits.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex justify-center space-x-4 mb-6">
             <Button
-              variant={!isSignUp ? 'default' : 'outline'}
-              onClick={() => setIsSignUp(false)}
+              variant={authMethod === 'magic_link' ? 'default' : 'outline'}
+              onClick={() => setAuthMethod('magic_link')}
               className="w-1/2"
             >
-              Sign In
+              Magic Link
             </Button>
             <Button
-              variant={isSignUp ? 'default' : 'outline'}
-              onClick={() => {
-                setIsSignUp(true);
-                setAuthMethod('password'); // Force password method for sign up
-              }}
+              variant={authMethod === 'password' ? 'default' : 'outline'}
+              onClick={() => setAuthMethod('password')}
               className="w-1/2"
             >
-              Sign Up
+              Password
             </Button>
           </div>
-
-          {!isSignUp && ( // Only show magic link/password toggle for sign-in
-            <div className="flex justify-center space-x-4 mb-6">
-              <Button
-                variant={authMethod === 'magic_link' ? 'default' : 'outline'}
-                onClick={() => setAuthMethod('magic_link')}
-                className="w-1/2"
-              >
-                Magic Link
-              </Button>
-              <Button
-                variant={authMethod === 'password' ? 'default' : 'outline'}
-                onClick={() => setAuthMethod('password')}
-                className="w-1/2"
-              >
-                Password
-              </Button>
-            </div>
-          )}
 
           <Auth
             supabaseClient={supabase}
@@ -69,8 +41,8 @@ const Login: React.FC = () => {
             providers={[]}
             theme="light"
             redirectTo={window.location.origin}
-            magicLink={authMethod === 'magic_link' && !isSignUp} // Magic link only for sign-in
-            view={currentView}
+            magicLink={authMethod === 'magic_link'} // Magic link only for sign-in
+            view={'sign_in'} // Always start with sign_in view
             localization={{
               variables: {
                 sign_in: {
@@ -80,7 +52,7 @@ const Login: React.FC = () => {
                   password_input_placeholder: 'Your password',
                   button_label: 'Sign In',
                   social_provider_text: 'Sign in with {{provider}}',
-                  link_text: 'Already have an account? Sign In',
+                  link_text: 'Don\'t have an account? Sign Up', // This link will take them to sign_up
                   confirmation_text: 'Check your email for the magic link!',
                 },
                 sign_up: {
@@ -90,7 +62,7 @@ const Login: React.FC = () => {
                   password_input_placeholder: 'Create a password',
                   button_label: 'Sign Up',
                   social_provider_text: 'Sign up with {{provider}}',
-                  link_text: 'Don\'t have an account? Sign Up',
+                  link_text: 'Already have an account? Sign In',
                   confirmation_text: 'Check your email for the magic link!',
                 },
                 forgotten_password: {
