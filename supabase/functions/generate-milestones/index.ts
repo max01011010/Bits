@@ -36,8 +36,16 @@ serve(async (req) => {
       });
     }
 
-    // Updated prompt to request both milestones and achievements with a curated list of valid Lucide icon names (PascalCase)
-    const promptContent = `Generate 3-4 incremental, small, and achievable milestones designed to be completed over a long period, and 2-3 custom achievements for the goal: "${endGoal}". Each milestone should have a "goal" (string, e.g., "Complete 10 minutes of exercise") and "targetDays" (number, e.g., 5). Emphasize breaking down the main goal into very manageable, progressive steps. For example, for a goal like "Read 12 books every year", milestones should be like "Read half a book in the next 30 days", "Completely read one book in 30 days", "Read 3 books in 90 days". Each achievement should have a "name" (string), "description" (string), and a "lucide_icon_name" (string, a valid Lucide icon component name from this exact list: ${VALID_LUCIDE_ICONS.map(icon => `'${icon}'`).join(', ')}). Return only a JSON object with two keys: "milestones" (array of milestone objects) and "achievements" (array of achievement objects). Do not include any other text or formatting.`;
+    // Updated prompt with more specific instructions for milestones and targetDays
+    const promptContent = `Generate 3-4 incremental, small, and achievable milestones, and 2-3 custom achievements for the goal: "${endGoal}".
+Each milestone should represent a daily actionable step towards the goal. The "targetDays" for each milestone should be a number between 3 and 15, indicating how many *daily completions* of that specific action are needed to complete the milestone.
+For example, if the end goal is "Create an app every month for a year", the milestones should be daily actions like:
+- "Spend 1 hour coding daily" (targetDays: 7)
+- "Research new features for 30 minutes daily" (targetDays: 5)
+- "Debug and test code for 45 minutes daily" (targetDays: 10)
+Each milestone should have a "goal" (string, e.g., "Complete 10 minutes of exercise") and "targetDays" (number).
+Each achievement should have a "name" (string), "description" (string), and a "lucide_icon_name" (string, a valid Lucide icon component name from this exact list: ${VALID_LUCIDE_ICONS.map(icon => `'${icon}'`).join(', ')}).
+Return only a JSON object with two keys: "milestones" (array of milestone objects) and "achievements" (array of achievement objects). Do not include any other text or formatting.`;
 
     const response = await fetch(HF_API_URL, {
       headers: {
