@@ -22,16 +22,14 @@ function App() {
         <footer className="text-center p-4 text-gray-600 dark:text-gray-400 text-sm">
           <p>Free app by Max Abardo.</p>
           <p>
-            Donate on{' '}
             <a
               href="https://ko-fi.com/maxabardo"
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:underline dark:text-blue-400"
             >
-              Ko-fi
+              Donate on Ko-fi to see more!
             </a>
-            .
           </p>
         </footer>
       </SessionContextProvider>
