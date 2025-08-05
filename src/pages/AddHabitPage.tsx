@@ -8,15 +8,23 @@ import { ArrowLeft } from 'lucide-react';
 import { addHabit, Milestone } from '@/lib/habit-store';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { useSession } from '@/components/SessionContextProvider'; // Import useSession
+import { useSession } from '@/components/SessionContextProvider';
+
+// Define the structure for AI-generated achievements
+interface GeneratedAchievement {
+  name: string;
+  description: string;
+  icon_name: string; // Lucide icon name
+}
 
 const AddHabitPage: React.FC = () => {
   const [endGoal, setEndGoal] = useState('');
   const [aiSuggestions, setAiSuggestions] = useState<Milestone[]>([]);
+  const [aiAchievements, setAiAchievements] = useState<GeneratedAchievement[]>([]); // New state for achievements
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { user } = useSession(); // Get user from session context
+  const { user } = useSession();
 
   const handleGenerateSuggestions = async () => {
     if (!endGoal.trim()) {
@@ -26,6 +34,8 @@ const AddHabitPage: React.FC = () => {
 
     setIsLoading(true);
     setShowSuggestions(false); // Hide previous suggestions while loading
+    setAiSuggestions([]); // Clear previous milestones
+    setAiAchievements([]); // Clear previous achievements
     const loadingToastId = toast.loading("Generating AI suggestions...");
 
     try {
@@ -36,16 +46,16 @@ const AddHabitPage: React.FC = () => {
       if (error) {
         console.error("Error invoking Edge Function:", error);
         toast.error(`Failed to generate suggestions: ${error.message}`, { id: loadingToastId });
-        setAiSuggestions([]);
       } else {
-        setAiSuggestions(data as Milestone[]);
+        // Assuming data now contains both milestones and achievements
+        setAiSuggestions(data.milestones as Milestone[]);
+        setAiAchievements(data.achievements as GeneratedAchievement[]);
         setShowSuggestions(true);
         toast.success("AI suggestions generated!", { id: loadingToastId });
       }
     } catch (err) {
       console.error("Unexpected error:", err);
       toast.error("An unexpected error occurred.", { id: loadingToastId });
-      setAiSuggestions([]);
     } finally {
       setIsLoading(false);
     }
@@ -62,9 +72,33 @@ const AddHabitPage: React.FC = () => {
       return;
     }
 
-    const added = await addHabit(user.id, endGoal, aiSuggestions);
-    if (added) {
-      toast.success(`Habit "${endGoal}" added successfully!`);
+    const addedHabit = await addHabit(user.id, endGoal, aiSuggestions);
+    if (addedHabit) {
+      // Now, save the AI-generated achievements
+      if (aiAchievements.length > 0) {
+        const achievementsToInsert = aiAchievements.map(ach => ({
+          user_id: user.id,
+          habit_id: addedHabit.id, // Link achievement to the newly created habit
+          name: ach.name,
+          description: ach.description,
+          icon_name: ach.icon_name,
+          is_unlocked: false,
+          unlocked_at: null,
+        }));
+
+        const { error: achievementsError } = await supabase
+          .from('user_achievements')
+          .insert(achievementsToInsert);
+
+        if (achievementsError) {
+          console.error('Error inserting AI-generated achievements:', achievementsError);
+          toast.error('Failed to save some achievements.');
+        } else {
+          toast.success(`Habit "${endGoal}" and its achievements added successfully!`);
+        }
+      } else {
+        toast.success(`Habit "${endGoal}" added successfully!`);
+      }
       navigate('/');
     }
   };
@@ -115,6 +149,20 @@ const AddHabitPage: React.FC = () => {
                     </li>
                   ))}
                 </ul>
+
+                {aiAchievements.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-xl font-semibold mb-3 text-gray-900 dark:text-gray-100">Suggested Achievements:</h3>
+                    <ul className="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
+                      {aiAchievements.map((ach, index) => (
+                        <li key={index}>
+                          <span className="font-medium">{ach.name}:</span> {ach.description} (Icon: {ach.icon_name})
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
                   <strong className="text-red-500">Note:</strong> This uses a Supabase Edge Function to call a free AI API. Ensure you've set your Hugging Face API token as a secret in Supabase.
                 </p>
