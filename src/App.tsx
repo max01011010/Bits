@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { SessionContextProvider } from './components/SessionContextProvider';
 import Login from './pages/Login';
 import AchievementsPage from './pages/AchievementsPage';
+import { MadeWithDyad } from './components/made-with-dyad'; // Import MadeWithDyad
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
             </a>
           </p>
         </footer>
+        <MadeWithDyad /> {/* Add MadeWithDyad component here */}
       </SessionContextProvider>
     </Router>
   );
