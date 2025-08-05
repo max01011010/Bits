@@ -10,7 +10,6 @@ import Login from "./pages/Login";
 import AchievementsPage from "./pages/AchievementsPage"; // Import AchievementsPage
 import { SessionContextProvider, useSession } from "./components/SessionContextProvider";
 import { MadeWithDyad } from "./components/made-with-dyad";
-import AppFooter from "./components/AppFooter"; // Import the new AppFooter
 
 const queryClient = new QueryClient();
 
@@ -70,8 +69,22 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <div className="p-4 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p>Free app by Max Abardo.</p>
+            <p>
+              Tip me on{' '}
+              <a
+                href="https://ko-fi.com/maxabardo"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline dark:text-blue-400"
+              >
+                Ko-fi
+              </a>{' '}
+              if you'd like to see more!
+            </p>
+          </div>
           <MadeWithDyad />
-          <AppFooter /> {/* Add the AppFooter here */}
         </SessionContextProvider>
       </BrowserRouter>
     </TooltipProvider>
