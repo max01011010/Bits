@@ -16,6 +16,12 @@ export interface Habit {
   last_completed_date: string | null; // ISO date string, renamed for Supabase
   milestones: Milestone[];
   created_at: string; // ISO date string, renamed for Supabase
+  repeat_mode: 'forever' | 'duration'; // 'forever' or 'duration'
+  repeat_duration_value: number | null; // e.g., 3
+  repeat_duration_unit: 'days' | 'weeks' | 'months' | 'years' | null; // e.g., 'weeks'
+  is_active: boolean; // True if the habit is currently active (for duration-based habits)
+  start_date: string; // Date when the habit was created or last reset (ISO date string)
+  completion_count: number; // How many times this habit has been fully completed
 }
 
 export const getHabits = async (userId: string): Promise<Habit[]> => {
@@ -33,7 +39,14 @@ export const getHabits = async (userId: string): Promise<Habit[]> => {
   return data as Habit[];
 };
 
-export const addHabit = async (userId: string, name: string, milestones: Milestone[]): Promise<Habit | null> => {
+export const addHabit = async (
+  userId: string,
+  name: string,
+  milestones: Milestone[],
+  repeatMode: 'forever' | 'duration',
+  repeatDurationValue: number | null,
+  repeatDurationUnit: 'days' | 'weeks' | 'months' | 'years' | null
+): Promise<Habit | null> => {
   const newHabit = {
     user_id: userId,
     name,
@@ -41,6 +54,12 @@ export const addHabit = async (userId: string, name: string, milestones: Milesto
     last_completed_date: null,
     milestones,
     created_at: new Date().toISOString(),
+    repeat_mode: repeatMode,
+    repeat_duration_value: repeatDurationValue,
+    repeat_duration_unit: repeatDurationUnit,
+    is_active: true, // New habits are always active
+    start_date: new Date().toISOString().split('T')[0], // Set start date to today
+    completion_count: 0,
   };
 
   const { data, error } = await supabase
