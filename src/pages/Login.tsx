@@ -6,10 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 
 const Login: React.FC = () => {
-  const [authMethod, setAuthMethod] = useState<'password' | 'magic_link'>('magic_link'); // Default to magic link for sign-in
-
-  // Determine the view for the Auth component
-  const currentView = authMethod === 'magic_link' ? 'magic_link' : 'sign_in';
+  const [authMethod, setAuthMethod] = useState<'password' | 'magic_link'>('magic_link'); // Default to magic link
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
@@ -46,8 +43,8 @@ const Login: React.FC = () => {
             providers={[]}
             theme="light"
             redirectTo={window.location.origin}
-            magicLink={authMethod === 'magic_link'} // Magic link only for sign-in
-            view={currentView}
+            magicLink={authMethod === 'magic_link'} // Applies to both sign-in and sign-up views
+            // The 'view' prop is removed to allow the Auth component to manage its own view switching
             localization={{
               variables: {
                 sign_in: {
@@ -57,7 +54,7 @@ const Login: React.FC = () => {
                   password_input_placeholder: 'Your password',
                   button_label: 'Sign In',
                   social_provider_text: 'Sign in with {{provider}}',
-                  link_text: 'Don\'t have an account? Sign Up',
+                  link_text: 'Don\'t have an account? Sign Up', // Link to switch to sign-up
                   confirmation_text: 'Check your email for the magic link!',
                 },
                 sign_up: {
@@ -67,7 +64,7 @@ const Login: React.FC = () => {
                   password_input_placeholder: 'Create a password',
                   button_label: 'Sign Up',
                   social_provider_text: 'Sign up with {{provider}}',
-                  link_text: 'Already have an account? Sign In',
+                  link_text: 'Already have an account? Sign In', // Link to switch back to sign-in
                   confirmation_text: 'Check your email for the magic link!',
                 },
                 forgotten_password: {
