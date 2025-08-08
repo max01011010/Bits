@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { isAfter } from 'date-fns';
+import { isAfter, subDays } from 'date-fns';
+import { getLocalDateString } from '@/utils/date';
 import { calculateEndDate } from './calculate-end-date.ts';
 
 export interface Milestone {
@@ -60,7 +61,7 @@ export const addHabit = async (
     repeat_duration_value: repeatDurationValue,
     repeat_duration_unit: repeatDurationUnit,
     is_active: true, // New habits are always active
-    start_date: new Date().toISOString().split('T')[0], // Set start date to today
+    start_date: getLocalDateString(), // Set start date to today
     completion_count: 0,
   };
 
@@ -125,7 +126,7 @@ export const markHabitCompleted = async (habitId: string, userId: string): Promi
   }
 
   const habit = habits as Habit;
-  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  const today = getLocalDateString(); // YYYY-MM-DD
 
   // If habit is not active, it cannot be marked completed
   if (!habit.is_active) {
@@ -133,7 +134,7 @@ export const markHabitCompleted = async (habitId: string, userId: string): Promi
     return false;
   }
 
-  const lastCompletionDay = habit.last_completed_date ? new Date(habit.last_completed_date).toISOString().split('T')[0] : null;
+  const lastCompletionDay = habit.last_completed_date;
 
   if (lastCompletionDay === today) {
     // Already marked for today, do nothing
@@ -141,9 +142,7 @@ export const markHabitCompleted = async (habitId: string, userId: string): Promi
     return true;
   }
 
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayString = yesterday.toISOString().split('T')[0];
+  const yesterdayString = getLocalDateString(subDays(new Date(), 1));
 
   let newStreak = habit.current_streak;
   if (lastCompletionDay === yesterdayString) {
