@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useSession } from '@/components/SessionContextProvider';
 import { addDays, addWeeks, addMonths, addYears, isAfter, parseISO } from 'date-fns'; // Import date-fns utilities
+import { getLocalDateString } from '@/utils/date';
 
 interface HabitCardProps {
   habit: Habit;
@@ -78,7 +79,7 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onHabitUpdate }) => {
   const firstUncompletedMilestoneIndex = habit.milestones.findIndex(m => !m.isCompleted);
   const currentMilestone = firstUncompletedMilestoneIndex !== -1 ? habit.milestones[firstUncompletedMilestoneIndex] : null;
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString();
   const isCompletedToday = habit.last_completed_date === today;
 
   const progressValue = currentMilestone
