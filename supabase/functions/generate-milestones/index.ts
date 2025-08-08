@@ -143,7 +143,7 @@ Return only a JSON object with two keys: "milestones" (array of milestone object
         description: a.description,
         icon_name: iconName,
         trigger_condition: a.trigger_condition, // Store the trigger condition
-        is_unlocked: false, // Initially unlocked
+        is_unlocked: false, // Initially locked
         unlocked_at: null,
       };
     });
