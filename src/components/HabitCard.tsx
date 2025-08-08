@@ -164,7 +164,7 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onHabitUpdate }) => {
                 className="w-full bg-green-600 hover:bg-green-700 text-white dark:bg-green-500 dark:hover:bg-green-600"
                 disabled={isCompletedToday}
               >
-                <CheckCircle2 className="mr-2 h-4 w-4" /> Mark Completed {isCompletedToday && "(Today)"}
+                <CheckCircle2 className="mr-2 h-4 w-4" /> Mark Complete {isCompletedToday && "(Today)"}
               </Button>
 
               <Dialog>
