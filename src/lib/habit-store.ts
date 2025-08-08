@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { addDays, addWeeks, addMonths, addYears, isAfter, parseISO } from 'date-fns';
+import { isAfter } from 'date-fns';
+import { calculateEndDate } from './calculate-end-date.ts';
 
 export interface Milestone {
   goal: string; // e.g., "Walk 1000 steps"
@@ -107,25 +108,7 @@ export const deleteHabit = async (id: string): Promise<boolean> => {
   return true;
 };
 
-// Helper function to calculate end date for duration-based habits
-const calculateEndDate = (startDate: string, value: number, unit: 'days' | 'weeks' | 'months' | 'years'): Date => {
-  let date = parseISO(startDate);
-  switch (unit) {
-    case 'days':
-      date = addDays(date, value);
-      break;
-    case 'weeks':
-      date = addWeeks(date, value);
-      break;
-    case 'months':
-      date = addMonths(date, value);
-      break;
-    case 'years':
-      date = addYears(date, value);
-      break;
-  }
-  return date;
-};
+// calculateEndDate is imported from calculate-end-date.ts
 
 export const markHabitCompleted = async (habitId: string, userId: string): Promise<boolean> => {
   const { data: habits, error: fetchError } = await supabase
