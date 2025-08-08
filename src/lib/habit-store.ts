@@ -170,17 +170,23 @@ export const markHabitCompleted = async (habitId: string, userId: string): Promi
     newStreak = 1;
   }
 
-  // Update current milestone's completed days
+  // Update the first incomplete milestone's completed days
+  const firstIncomplete = habit.milestones.findIndex(m => !m.isCompleted);
   let updatedMilestones = habit.milestones.map((milestone, index) => {
-    if (!milestone.isCompleted && index === 0) { // Assuming the first incomplete milestone is the current one
-      return { ...milestone, completedDays: milestone.completedDays + 1 };
+    if (index === firstIncomplete) {
+      const updatedCompletedDays = milestone.completedDays + 1;
+      return {
+        ...milestone,
+        completedDays: updatedCompletedDays,
+        isCompleted: updatedCompletedDays >= milestone.targetDays,
+      };
     }
     return milestone;
   });
 
   let newIsActive: boolean = habit.is_active; // Explicitly type as boolean
   let newCompletionCount = habit.completion_count;
-  let newStartDate = habit.start_date; // Keep original start date unless reset
+  const newStartDate = habit.start_date; // Keep original start date unless reset
 
   // Check if the current milestone is now completed
   const firstUncompletedMilestoneIndex = updatedMilestones.findIndex(m => !m.isCompleted);
