@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Trash2, ListChecks, Repeat, Clock } from 'lucide-react'; // Import Repeat and Clock icons
@@ -79,7 +79,19 @@ const HabitCard: React.FC<HabitCardProps> = ({ habit, onHabitUpdate }) => {
   const firstUncompletedMilestoneIndex = habit.milestones.findIndex(m => !m.isCompleted);
   const currentMilestone = firstUncompletedMilestoneIndex !== -1 ? habit.milestones[firstUncompletedMilestoneIndex] : null;
 
-  const today = getLocalDateString();
+  const [today, setToday] = useState(getLocalDateString());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setToday(prev => {
+        const current = getLocalDateString();
+        return current !== prev ? current : prev;
+      });
+    }, 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const isCompletedToday = habit.last_completed_date === today;
 
   const progressValue = currentMilestone
