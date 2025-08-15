@@ -69,7 +69,7 @@ Return only a JSON object with two keys: "milestones" (array of milestone object
             content: promptContent,
           }
         ],
-        model: "CohereLabs/aya-expanse-8b:cohere",
+        model: "mistralai/Mistral-7B-Instruct-v0.2:featherless-ai",
         stream: false
       }),
     });
